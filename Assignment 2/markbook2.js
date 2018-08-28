@@ -10,9 +10,9 @@ let recursiveFunction = function(){
                 return rl.close();
             } else if (Uinpt==`average`){
                 if (count<1){count++;}
-                console.log(`average: ${marks}/${count} = ` + marks/count)
+                console.log(`average: ${marks}/${count} = ` + marks/count);
             } else {
-                console.log(`User input: "${Uinpt}" not recognized.`)
+                console.log(`User input: "${Uinpt}" not recognized.`);
             }
 
         } else {

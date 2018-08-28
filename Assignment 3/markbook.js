@@ -26,7 +26,7 @@ rl.on('line', (input) => {
                     keyMax=keyMax+` and `+key;
                 }
             }
-            console.log(`mode: ${keyMax} with ${valueMax} occurances.` )
+            console.log(`mode: ${keyMax} with ${valueMax} occurances.` );
         } else {
             console.log(`Invalid input: "${input}"`);
         }

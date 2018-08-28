@@ -12,9 +12,9 @@ rl.on('line', (input) => {
             return rl.close();
         } else if (input==`average`){
             if (count<1){count++;}
-            console.log(`average: ${marks}/${count} = ` + marks/count)
+            console.log(`average: ${marks}/${count} = ` + marks/count);
         } else {
-            console.log(`User input: "${input}" not recognized.`)
+            console.log(`User input: "${input}" not recognized.`);
         }
 
     } else {
