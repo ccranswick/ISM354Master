@@ -1,4 +1,4 @@
-# Getting Started: Dane Brouwer 20256671
+# assignment-1-Danebrouwer97
 > ## An exploration into architectural patterns and web applications.
 
 ## Table of Contents
