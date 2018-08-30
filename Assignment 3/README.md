@@ -10,8 +10,6 @@ understanding. Use the body of the if statement to print a suitable message.
 > * (5) Create a file operators.md and (using markdown) explain how the two increment operators work based on your
 observations.
 > * (10) Copy your markbook.js file from the previous assignment and commit it. Now modify it to include the following
-new features. 
-> 
-> Do not forget to commit each change you make. Add a feature to print out the mode of the marks in the markbook. You will need to investigate what this means and identify a method for calculating it in JavaScript. Also add error handling in your code to ensure that all marks are in the inclusive range of 0 to 100.
+new features. Add a feature to print out the mode of the marks in the markbook. You will need to investigate what this means and identify a method for calculating it in JavaScript. Also add error handling in your code to ensure that all marks are in the inclusive range of 0 to 100.
 > 
 > TAKE NOTE: This assignment is due on Monday 3 September, but you will NOT have the Friday 31 August practical to work on it.
