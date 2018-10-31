@@ -1,11 +1,11 @@
 # <a name="Top"></a>TABLE OF CONTENTS
-* [Chapter 3](#Chapter-3)
+* [Chapter 3](#chapter3)
 * [Chapter 4](Chapter4)
 * [Chapter 5](Chapter5)
 * [Chapter 6](Chapter6)
 * [Chapter 7](Chapter7)
 
-## <a name="Chapter-3"></a>Chapter 3 - [Top](#Top)
+## <a name="chapter3"></a>Chapter 3 - [Top](#Top)
 ## Literals, Variables, Constants, and Data Types
 ### Variables and Constants
 #### There are currently 3 methods in which to declare a variable or constant:
