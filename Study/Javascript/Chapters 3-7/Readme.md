@@ -119,7 +119,7 @@ console.log(`See you later, $(user_name)`!);
 ------ Console Output ------
 See you later, Al E. Gator!
 ```
-One must be use caution when dealing with multiple quotes, backticks and apostrophes within a string.
+One must use caution when dealing with multiple quotes, backticks and apostrophes within a string.
 ```
 // this is fine
 const dialog = 'Sam said "Hello, old friend!"';
@@ -138,12 +138,12 @@ This brings us to our next topic under strings, Escaping and Special Characters.
 | Code | Description | Example |
 |:------:|:-----------------:|:----------------------:|
 | \n | Newline | "Hello\nWorld" |
-| \r | Return Carriage | "Line1\rLine2 |
+| \r | Return Carriage | "Line1\rLine2" |
 | \t | Tab | "Hello\tWorld" |
 | \' | Single Quotation | 'Don\\'t clap!' |
 | \"" | Double Quotation | "Say, \\"Hello.\\"" |
-| \$ | Dollar Sign | `Hey ${user_name}!' |
-| \\\ | Backslash | "5\\\5 === 1" |
+| \$ | Dollar Sign | \`Hey ${user_name}!\` |
+| \\\ | Backslash | "5\\5 === 1" |
 | \uXXXX | Unicode Point | "Alpha Symbol: \u03B1" |
 | \xXX | Latin-1 Character | "Mu Symbol: \xDF" |
 | \0 | NUL Character | "ASCII NUL: \o" |
@@ -728,6 +728,7 @@ Case 1:
 * 3 + 5 = 8
 * 8 + "8"
 * "88"
+
 Case 2:
 * "3" + 5 = "35"
 * "35" + 8
@@ -832,5 +833,7 @@ b; // 5
 #### Strict Mode
 
 Useful links:
+
 https://jsbin.com/
+
 https://www.tablesgenerator.com/markdown_tables#
