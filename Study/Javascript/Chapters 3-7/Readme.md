@@ -1,11 +1,11 @@
-# TABLE OF CONTENTS
-* [Chapter 3](Chapter 3)
-* Chapter 4
-* Chapter 5
-* Chapter 6
-* Chapter 7
+# <a name="Top"></a>TABLE OF CONTENTS
+* [Chapter 3](#Chapter3)
+* [Chapter 4](#Chapter4)
+* [Chapter 5](#Chapter5)
+* [Chapter 6](#Chapter6)
+* [Chapter 7](#Chapter7)
 
-## Chapter 3
+## <a name="Chapter3"></a>Chapter 3 - [Top](#Top)
 ## Literals, Variables, Constants, and Data Types
 ### Variables and Constants
 #### There are currently 3 methods in which to declare a variable or constant:
@@ -79,7 +79,7 @@ console.log(two);
 Uncaught ReferenceError: two is not defined
 ```
 ### Primitive Data Types and Objects
-Primitive types
+#### Primitive types
 * Number
 * String
 * Boolean
@@ -87,7 +87,7 @@ Primitive types
 * Undefined
 * Symbol
 
-Primitive Objects
+#### Primitive Objects
 * Array
 * Date
 * RegExp (Regular Expression)
@@ -140,10 +140,10 @@ This brings us to our next topic under strings, Escaping and Special Characters.
 | \n | Newline | "Hello\nWorld" |
 | \r | Return Carriage | "Line1\rLine2 |
 | \t | Tab | "Hello\tWorld" |
-| \' | Single Quotation | 'Don\'t clap!' |
-| \"" | Double Quotation | "Say, \"Hello.\"" |
+| \' | Single Quotation | 'Don\\'t clap!' |
+| \"" | Double Quotation | "Say, \\"Hello.\\"" |
 | \$ | Dollar Sign | `Hey ${user_name}!' |
-| \\ | Backslash | "5\\5 === 1" |
+| \\\ | Backslash | "5\\\5 === 1" |
 | \uXXXX | Unicode Point | "Alpha Symbol: \u03B1" |
 | \xXX | Latin-1 Character | "Mu Symbol: \xDF" |
 | \0 | NUL Character | "ASCII NUL: \o" |
@@ -166,7 +166,7 @@ console.log(result2);
 Booleans have two values:
 * true
 * false
-> Note: considerations must be made when dealing with "truthy" or "falsy" values. See Chapter 5.
+> Note: considerations must be made when dealing with "truthy" or "falsy" values. See [Chapter 5](#Chapter5).
 
 #### Symbols
 Symbols are new data types that are used like unique tokens; no symbol matches another.
@@ -362,9 +362,300 @@ arr.toString();
 
 ##### Converting to Boolean
 Uses the Boolean() or double-"not" operator(!!)
-> Note: truthy and falsy values are covered in Chapter 5
+> Note: truthy and falsy values are covered in [Chapter 5](#Chapter5)
 ```
 const n = 0; //falsy value i.e. false
 const b1 = !!n; // false
 const b2 = Boolean(n); // false
 ```
+
+## <a name="Chapter4"></a>Chapter 4 - [Top](#Top)
+## Control Flow
+### Simple Control Flows
+#### While Loops
+The while loop begins with its condition. If the condition is true it will run through its "Block Statement". Once its Block Statement is finished it will check the condition again. Essentially, while the condition is true, a while loop will run.
+```
+let i = 0;
+while (i < 5) {
+    console.log(i);
+    i++;
+}
+
+------ Console Output ------
+0
+1
+2
+3
+4
+```
+You can also make an infinite loop that will conditonally stop using a Control Flow Exception.
+```
+let i = 0;
+while (true){
+    console.log(i);
+    i++;
+    if (i === 5) {
+        break;
+    }
+}
+```
+
+#### Block Statements
+Block Statements (sometimes called Compound Statements) is just a series of statements enclosed in curly braces.
+```
+{ // start block statement
+    console.log("statement 1");
+    console.log("statement 2");
+} // end block statement
+console.log("statement 3");
+```
+While exceedingly common in JS, a Block Statement is not necessarily required for single line functions/methods.
+```
+let i = 2;
+while(i < 500)
+    i = i + 2;
+```
+> Note: One may omit the curly braces but one must remember than only the first function/method is performed within the conditional statement.
+```
+let i = 2;
+while (i < 5)
+    console.log(i);
+    i++;
+    console.log("Hello, World!");
+
+------ Console Output ------
+2
+3
+4
+Hello, World!
+```
+
+
+#### Whitespace
+For the most part, JS doesn't care about whitespace, including new lines.
+For Example:
+```
+while(i < 500)
+
+
+    i = i + 2; //this is still valid
+```
+> Note: it is generally frowned upon to leave unnecessary whitespace
+
+#### if Statements
+An if Statement only runs should the condition be true.
+```
+let i = 5;
+if (i < 6){
+    console.log(i);
+}
+```
+if...else Statements are fairly straight forward, if the if Statement's condition fails, the else statement runs.
+```
+let i = 5;
+if (i > 100) {
+    console.log("greater than 100");
+} else {
+    console.log("smaller than 100");
+}
+
+------ Console Output ------
+smaller than 100
+```
+if...else if Statements are fairly straight forward as well, one may just give a condition to an else statement.
+```
+let i = 5;
+if (i > 100) {
+    console.log("greater than 100");
+} else if (i < 50) {
+    console.log("smaller than 50");
+} else {
+    console.log("between 50 and 100");
+}
+
+------ Console Output ------
+smaller than 50
+```
+One can add as many conditions to any statement as one likes. Similarily, one can use comparison or logical operators as well.
+* AND operator - &&
+    * Requires two true results to pass
+* OR operator - ||
+    * Require one true result to pass
+* NOT operator - !
+    * flips the boolean result
+        * true --> false
+        * false --> true
+```
+let i = 10;
+if ( (i > 0 && i < 100) || !(i === 10) ) {
+    //true     true        false
+    console.log(i);
+}
+
+------ Console Output ------
+10
+```
+A different kind of if Statement is a Conditional Operator and functions as follows.
+* (condition) ? result_if_true : result_if_false;
+```
+let i = 6;
+(i>10)?console.log("greater than 10"):console.log("smaller than 10");
+
+------ Console Output ------
+smaller than 10
+```
+
+#### Switch Statements
+Switch Statements function similarily to a if...else Statement or Conditional Operator. However, it allows you to have a condition more varied than simply true or false.
+```
+const money = 50;
+switch(money) {
+    case 10:
+        console.log("You've got 10")
+        break;
+    case 20:
+        console.log("You've got 20")
+        break;
+    case 50:
+        console.log("You've got half a hundred");
+        return money;
+}
+
+------ Console Output ------
+You've got half a hundred
+```
+
+#### do...while Loop
+do...while Loops function the same way as while Loops, but do...while Loops first run their block statement and then check the condition.
+```
+let i = 5;
+do {
+    i++;
+    console.log(i);
+} while (i > 10)
+
+------ Console Output ------
+6
+```
+
+#### for Loops
+The for Loop is able to replace both the while or do...while Loop. It is usually needed when you need to repeat a function a fixed number of times. What's special about the for Loop is that you can define your incrementing variable inside the for Loop. There are also a number of variations on the for Loop.
+```
+for (var i = 0; i < 3; i++) {
+    console.log(i);
+}
+
+------ Console Output ------
+0
+1
+2
+```
+> Note: remember you can ONLY retrieve the value i after the for loop IF you used VAR and NOT LET
+```
+for(var i = 0;i<5;i++){
+  continue;
+}
+console.log(i);
+
+for(let i = 0;i<5;i++){
+  continue;
+}
+console.log(i);
+
+------ Console Output ------
+5
+ReferenceError: i is not defined
+```
+for...in Loop
+* Designed to loop over the property keys of an object
+```
+const player = { name: 'Thomas', rank: 'Midshipman', age: 25 };
+for(let prop in player) {
+    console.log(prop + ': ' + player[prop]);
+}
+
+------ Console Output ------
+name: Thomas
+rank: midshipman
+age: 25
+```
+for...of Loop
+* Designed to loop through iterable objects such as arrays
+```
+const numberArray = [1,3,5];
+for(let singleNumber of numberArray) {
+    console.log(singleNumber);
+}
+
+------ Console Output ------
+1
+3
+5
+```
+
+Variation:
+```
+for(let temp, i=0, j=1; j<30; temp = i, i = j, j = i + temp) {
+    console.log(j);
+}
+
+for(;;) console.log("I will repeat forever!");
+
+let s = '3'; // string containing a number
+for(; s.length<10; s = ' ' + s); // zero pad string; note that we must include a semicolon to terminate this for loop!
+for(let x=0.2; x<3.0; x += 0.2) { // increment using noninteger
+    console.log(x);
+}
+for(; !user.isBroke;) { //use object property as conditional
+    console.log("User is still broke!");
+}
+```
+
+### Control Flow Exceptions
+There are a number of control flow exceptions:
+* break
+    * breaks out of the loop early
+* continue
+    * skips to the next step in the loop
+* return
+    * exits the current function
+    * can be given an argument to return upon exit
+* throw
+    * indicates an exception that must be caught by a handler
+```
+let i = 5;
+
+function shout(string) {
+    return string+"!";
+    console.log("I won't be run.");
+}
+
+while (i < 50) {
+    i++;
+    if (i === 15) {
+        console.log(i);
+        continue;
+    } else if (i === 20) {
+        break;
+    }
+}
+
+console.log(shout(i));
+
+------ Console Output ------
+15
+20!
+```
+
+## <a name="Chapter5"></a>Chapter 5 - [Top](#Top)
+## Expressions and Operators
+### Operators
+#### Arithmetic Operators
+#### Operator Precedence
+#### Comparison Operators
+#### String Concatenation
+#### Logical Operators
+#### Truthy and Falsy Values
+#### Comma Operator
+
+### Expressions
