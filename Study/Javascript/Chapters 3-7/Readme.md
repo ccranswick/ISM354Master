@@ -1,9 +1,9 @@
 # <a name="Top"></a>TABLE OF CONTENTS
 * [Chapter 3](#chapter3)
-* [Chapter 4](Chapter4)
-* [Chapter 5](Chapter5)
-* [Chapter 6](Chapter6)
-* [Chapter 7](Chapter7)
+* [Chapter 4](#chapter4)
+* [Chapter 5](#chapter5)
+* [Chapter 6](#chapter6)
+* [Chapter 7](#chapter7)
 
 ## <a name="chapter3"></a>Chapter 3 - [Top](#Top)
 ## Literals, Variables, Constants, and Data Types
@@ -369,7 +369,7 @@ const b1 = !!n; // false
 const b2 = Boolean(n); // false
 ```
 
-## <a name="Chapter4"></a>Chapter 4 - [Top](#Top)
+## <a name="chapter4"></a>Chapter 4 - [Top](#Top)
 ## Control Flow
 ### Simple Control Flows
 #### While Loops
@@ -478,7 +478,7 @@ smaller than 50
 ```
 One can add as many conditions to any statement as one likes. Similarily, one can use comparison or logical operators as well.
 * AND operator - &&
-    * Requires two true results to pass
+    * Requires all results to be true to pass
 * OR operator - ||
     * Require one true result to pass
 * NOT operator - !
@@ -647,15 +647,186 @@ console.log(shout(i));
 20!
 ```
 
-## <a name="Chapter5"></a>Chapter 5 - [Top](#Top)
+## <a name="chapter5"></a>Chapter 5 - [Top](#Top)
 ## Expressions and Operators
 ### Operators
-#### Arithmetic Operators
-#### Operator Precedence
-#### Comparison Operators
-#### String Concatenation
-#### Logical Operators
-#### Truthy and Falsy Values
-#### Comma Operator
+One can think of operators as the metaphorical "verbs" of programming languages
 
-### Expressions
+#### Arithmetic Operators
+| Operator | Description | Example |
+|:--------:|:-----------------------------:|:------------------------------------------:|
+| + | Addition/String Concatenation | 3+2 // 5 |
+| - | Subtraction | 3-2 // 1 |
+| / | Division | 3/2 // 1.5 |
+| * | Multiplication | 3*2 // 6 |
+| % | Remainder | 3%2 // 1 |
+| - | Unary Negation | -x // Negative x |
+| + | Unary Plus | x+ // converts to number |
+| ++() | Pre-Increment | ++x // increment by 1, evaluates new value |
+| ()++ | Post-Increment | x++ // increment by 1, evaluates old value |
+| --() | Pre-Decrement | --x // decrement by 1, evaluates new value |
+| ()-- | Post-Decrement | x-- // decrement by 1, evaluates new value |
+#### Operator Precedence
+* Follows PEMDAS - “Please Excuse My Dear Aunt
+Sally.”
+    * Parenthesis
+    * Exponents
+    * Multiplication
+    * Division
+    * Addition
+    * Subtraction
+Consider:
+```
+console.log(8 ÷ 2 + 3 × ( 4 × 2 − 1 ));
+//(8 ÷ 2 + 3 × ( 4 × 2 − 1 ))
+//(8 ÷ 2 + 3 × ( 8 − 1 ))
+//(8 ÷ 2 + 3 × ( 7 ))
+//(4 + 3 × ( 7 ))
+//(4 + 21 )
+//(25 )
+
+------ Console Output ------
+25
+```
+#### Comparison Operators
+There are three types of equality:
+* Strict equality (===)
+* abstract equality (==)
+* relational
+```
+const n = 5;
+const s = "5";
+n === s; // false -- different types
+n !== s; // true
+n === Number(s); // true -- "5" converted to numeric 5
+n !== Number(s); // false
+n == s; // true; not recommended
+n != s; // false; not recommended
+
+
+//Relational Operators
+3 > 5; // false
+3 >= 5; // false
+3 < 5; // true
+3 <= 5; // true
+5 > 5; // false
+5 >= 5; // true
+5 < 5; // false
+5 <= 5; // true
+```
+#### String Concatenation
+There are two cases of concatenation, see below:
+```
+console.log(3 + 5 + "8"); //case 1
+console.log("3" + 5 + 8); //case 2
+
+------ Console Output ------
+88
+358
+```
+Case 1:
+* 3 + 5 = 8
+* 8 + "8"
+* "88"
+Case 2:
+* "3" + 5 = "35"
+* "35" + 8
+* "358"
+
+#### Truthy and Falsy Values
+* Truthy Values
+    * Any object
+    * Any array
+    * Any non-empty string
+    * The string "false"
+    * Any integer (besides 0)
+* Falsy Values
+    * undefined
+    * null
+    * 0
+    * NaN
+    * '' (an empty string)
+#### Short-circuit evaluation is on pg91 if you're interested, but I don't think it will be examinable. Comma operator, grouping operator, bitwise operators, typeof Operator, void operator.
+
+#### Assignment Operators
+| Operator | Equivalent |
+|:--------:|:----------:|
+| x+=y | x = x + y |
+| x-=y | x = x - y |
+| x*=y | x = x * y |
+| x/=y | x = x / y |
+| x%=y | x = x % y |
+| x^=y | x = x ^ y |
+| x&=y | x = x & y |
+| x|=y | x = x | y |
+
+#### Destructuring Assignment
+Allows you to take an object or an array and destructure it into individual variables.
+```
+//example1
+// a normal object
+const obj = { b: 2, c: 3, d: 4 };
+// object destructuring assignment
+const {a, b, c} = obj;
+a; // undefined: there was no property "a" in obj
+b; // 2
+c; // 3
+d; // reference error: "d" is not defined
+
+//example2
+const obj = { b: 2, c: 3, d: 4 };
+let a, b, c;
+({a, b, c} = obj);
+a; // undefined
+b; // 2
+c; // 3
+
+//example3
+// a normal array
+const arr = [1, 2, 3];
+// array destructuring assignment
+let [x, y] = arr;
+x; // 1
+y; // 2
+
+//example4 - catching the rest of the array using (...) operator
+const arr = [1, 2, 3, 4, 5];
+let [x, y, ...rest] = arr;
+x; // 1
+y; // 2
+rest; // [3, 4, 5]
+
+//example5 - swopping numbers
+let a = 5, b = 10;
+[a, b] = [b, a];
+a; // 10
+b; // 5
+```
+
+## <a name="chapter6"></a>Chapter 6 - [Top](#Top)
+## Functions
+#### Return Values
+#### Calling Versus Referencing
+### Function Arguments
+#### Do Arguments Make the Function?
+#### Destructuring Arguments
+#### Default Arguments
+#### Functions as Properties of Objects
+#### The this Keyword
+#### Function Expressions and Anonymous Functions
+### Arrow Notation
+#### call, apply, and bind
+
+## <a name="chapter7"></a>Chapter 7 - [Top](#Top)
+## Scope
+#### Scope Versus Existence
+#### Lexical Versus Dynamic Scoping
+#### Global Scope
+#### Block Scope
+#### Variable Masking
+#### Functions, Closures, and Lexical Scope
+#### Immediately Invoked Function Expressions
+#### Function Scope and Hoisting
+#### Function Hoisting
+#### The Temporal Dead Zone
+#### Strict Mode
