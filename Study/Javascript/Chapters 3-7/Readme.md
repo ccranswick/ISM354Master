@@ -830,3 +830,7 @@ b; // 5
 #### Function Hoisting
 #### The Temporal Dead Zone
 #### Strict Mode
+
+Useful links:
+https://jsbin.com/
+https://www.tablesgenerator.com/markdown_tables#
