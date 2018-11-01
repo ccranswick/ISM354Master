@@ -78,6 +78,7 @@ console.log(two);
 1
 Uncaught ReferenceError: two is not defined
 ```
+
 ### Primitive Data Types and Objects
 #### Primitive types
 * Number
@@ -135,15 +136,16 @@ const dialog = "Sam said \"Hello, old friend!\"";
 const shout = 'Don\'t do that!'
 ```
 This brings us to our next topic under strings, Escaping and Special Characters.
+
 | Code | Description | Example |
 |:------:|:-----------------:|:----------------------:|
 | \n | Newline | "Hello\nWorld" |
 | \r | Return Carriage | "Line1\rLine2" |
 | \t | Tab | "Hello\tWorld" |
-| \' | Single Quotation | 'Don\\'t clap!' |
-| \"" | Double Quotation | "Say, \\"Hello.\\"" |
-| \$ | Dollar Sign | `` `Hey ${user_name}!` `` |
-| \\\ | Backslash | "5\\5 === 1" |
+| \\' | Single Quotation | 'Don\\'t clap!' |
+| \\" | Double Quotation | "Say, \\"Hello.\\"" |
+| \$ | Dollar Sign | \`Hey ${user_name}!\` |
+| \\\ | Backslash | "5\\\5 equals 1" |
 | \uXXXX | Unicode Point | "Alpha Symbol: \u03B1" |
 | \xXX | Latin-1 Character | "Mu Symbol: \xDF" |
 | \0 | NUL Character | "ASCII NUL: \o" |
@@ -336,6 +338,7 @@ onds since midnight, January 1, 1970, UTC, using its valueOf() method:
 const d = new Date(); // current date
 const ts = d.valueOf(); // numeric value: milliseconds since [midnight, January 1, 1970 UTC]
 ```
+
 ##### Converting to String
 One can use either the toString() method or a very simple string concatenation method
 ```
@@ -666,6 +669,7 @@ One can think of operators as the metaphorical "verbs" of programming languages
 | ()++ | Post-Increment | x++ // increment by 1, evaluates old value |
 | --() | Pre-Decrement | --x // decrement by 1, evaluates new value |
 | ()-- | Post-Decrement | x-- // decrement by 1, evaluates new value |
+
 #### Operator Precedence
 * Follows PEMDAS - “Please Excuse My Dear Aunt
 Sally.”
@@ -688,6 +692,7 @@ console.log(8 ÷ 2 + 3 × ( 4 × 2 − 1 ));
 ------ Console Output ------
 25
 ```
+
 #### Comparison Operators
 There are three types of equality:
 * Strict equality (===)
@@ -747,6 +752,7 @@ Case 2:
     * 0
     * NaN
     * '' (an empty string)
+
 #### Short-circuit evaluation is on pg91 if you're interested, but I don't think it will be examinable. Comma operator, grouping operator, bitwise operators, typeof Operator, void operator.
 
 #### Assignment Operators
@@ -806,25 +812,319 @@ b; // 5
 
 ## <a name="chapter6"></a>Chapter 6 - [Top](#Top)
 ## Functions
+selfcontained collection of statements that runs as a single unit
+
+Function declaration
+```
+function function_name() {
+    //this is the body; starts with a curly brace
+    console.log(""Hello, World!");
+    //ends with a curly brace
+}
+```
+Function calling
+```
+function_name();
+```
+
 #### Return Values
+A function with a return value is an expression that resolves to a value. This is how we can retrieve an output from a function.
+
+Example:
+```
+function getString() {
+    return "Hello, World!";
+}
+
+console.log(getString());
+
+------ Console Output ------
+Hello, World!
+```
+
 #### Calling Versus Referencing
+It is important to note that you may CALL or REFERENCE a function.
+* functionName() --> call
+* functionName --> reference
+```
+function getString() {
+    return "Hello, World!";
+}
+getString(); // "Hello, World!"
+getString; // function getString(): returns the function
+
+//assign function to VARIABLE
+const f = getString;
+f(); // "Hello, World!"
+//assign function to object property
+const o = {};
+o.f = getString;
+o.f(); // "Hello, World!"
+
+//assign function to ARRAY
+const arr = [1, 2, 3];
+arr[1] = getString; // arr = [1, function getString(), 2]
+arr[1](); // "Hello, World!"
+```
+
 ### Function Arguments
-#### Do Arguments Make the Function?
+You can parse arguements through a function as well, this allows us to give our functions input.
+```
+function avg(a, b) {
+    return((a+b)/2);
+}
+
+avg(5, 10); // 7.5
+```
+As mentioned in [Chapter 3](#chapter3), scope limits your ability to change certain variables from within a function. This, however, is not true for objects.
+```
+function f(o) {
+    o.message = o.message + ", World!";
+}
+let o = {
+    message: "Hello";
+}
+console.log(o.message);
+f(o);
+console.log(o.message);
+
+------ Console Output ------
+Hello
+Hello, World!
+```
+As can be seen, an object parsed into a function is able to be changed.
+
 #### Destructuring Arguments
+One can also parse destructured arguements. This means one can parse an object or array directly into a function.
+```
+// object
+function getSentence({ subject, verb, object }) {
+    return `${subject} ${verb} ${object}`;
+}
+const o = {
+    subject: "I",
+    verb: "love",
+    object: "JavaScript",
+};
+getSentence(o); // "I love JavaScript"
+// array
+function getSentence([ subject, verb, object ]) {
+    return `${subject} ${verb} ${object}`;
+}
+const arr = [ "I", "love", "JavaScript" ];
+getSentence(arr); // "I love JavaScript"
+```
+
 #### Default Arguments
+In ES6 one can now specify default values as well.
+```
+function f(a, b = "2", c = "3") {
+    return `${a} - ${b} - ${c}`;
+}
+f(5); // "5 - 2 - 3" 
+f(5, 6); // "5 - 6 - 3"
+```
+
 #### Functions as Properties of Objects
+Objects may possess a function as an attribute.
+```
+const dog = {
+    name: "Henry",
+    age: 3,
+    bark: function () {return 'Woof!';}
+}
+
+dog.bark; // function() {return 'Woof!';}
+dog.bark(); // Woof!
+```
+> Note: keep in mind that the property becomes a function and if you don't call it properly it will merely  reference the function.
+
 #### The this Keyword
+The "this" keyword relates to functions that are properties of objects. When methods are called, the "this" keyword takes on the value of the specific object it was called on.
+```
+const o = {
+    name: 'Wallace',
+    speak() { return `My name is ${this.name}!`; },
+}
+
+o.speak(); // My name is Wallace!
+```
+
 #### Function Expressions and Anonymous Functions
+As per the textbook:
+> So far, we’ve been dealing exclusively with function declarations, which give functions both a body (which defines what the function does) and an identifier (so we can call it later). JavaScript also supports anonymous functions, which don’t necessarily have an identifier.
+This brings us to the next point, Anonymous Functions.
+```
+var i = 6;
+const g = function f(stop) {
+    if (stop === false) {
+        return;
+    } else if (i===10) { 
+        f(false); 
+    } else {
+        console.log(i);
+        i++;
+        f(true);
+    }
+};
+g(true);
+
+------ Console Output ------
+6
+7
+8
+9
+```
+As can be seen from above, the identifier for the function is not the f() but rather the g(). This means we have the ability to call the f() function from within the f() function itself. 
+> This allows us to establish a, what is called, Recursive Function.
+
 ### Arrow Notation
+> also called "Fat Arrow"
+Arrow Notation allows us to do a number of different things.
+* You can omit the word "Function"
+* If the function takes a single arugment, you can omit the parentheses.
+    * Wanderer => \`Hello, ${Wanderer}!\`
+* If the function body is a single expression, you can omit curly braces and the return statement.
+```
+const f1 = function() { return "Hello"; }
+// OR
+const f1 = () => "Hello";
+const f2 = function(name) { return `Hello, ${name}!`; }
+// OR
+const f2 = name => `Hello, ${name}!`;
+const f3 = function(a, b) { return a + b; }
+// OR
+const f3 = (a,b) => a + b;
+```
 #### call, apply, and bind
+These concepts are unfortunately not easy to explain and understand through basic descriptions. Thus, an example is the best way to go.
+
+Call
+```
+const bruce = { name: "Bruce" };
+const madeline = { name: "Madeline" };
+
+// this function isn't associated with any object, yet
+// it's using 'this'!
+function greet() {
+    return `Hello, I'm ${this.name}!`;
+}
+greet(); // "Hello, I'm !" - 'this' not bound
+greet.call(bruce); // "Hello, I'm Bruce!" - 'this' bound to 'bruce'
+greet.call(madeline); // "Hello, I'm Madeline!" - 'this' bound to 'madeline'
+```
+As can be seen from above, the function greet() takes no argument but uses "this" within itself. Therefore one can see that call allows us to call a function as if it were a method.
+> Note: call allows us to provide an object to bind "this" to.
+```
+function update(birthYear, occupation) {
+    this.birthYear = birthYear;
+    this.occupation = occupation;
+}
+update.call(bruce, 1949, 'singer');
+    // bruce is now { name: "Bruce", birthYear: 1949,
+    // occupation: "singer" }
+update.call(madeline, 1942, 'actress');
+    // madeline is now { name: "Madeline", birthYear: 1942,
+    // occupation: "actress" }
+```
+Apply is pretty identical to Call, however it takes an Array as arguments instead.
+```
+update.apply(bruce, [1955, "actor"]);
+    // bruce is now { name: "Bruce", birthYear: 1955,
+    // occupation: "actor" }
+update.apply(madeline, [1918, "writer"]);
+    // madeline is now { name: "Mad
+// OR
+const arr = [2, 3, -5, 15, 7];
+Math.min.apply(null, arr); // -5
+Math.max.apply(null, arr); // 15
+```
+There’s one final function that allows you to specify the value for "this": bind. Bind allows you to permanently associate a value for "this" with a function.
+```
+const updateBruce = update.bind(bruce);
+
+updateBruce(1904, "actor");
+    // bruce is now { name: "Bruce", birthYear: 1904, occupation: "actor" }
+updateBruce.call(madeline, 1274, "king");
+    // bruce is now { name: "Bruce", birthYear: 1274, occupation: "king" };
+    // madeline is unchanged
+// OR
+const updateBruce1949 = update.bind(bruce, 1949);
+
+updateBruce1949("singer, songwriter");
+    // bruce is now { name: "Bruce", birthYear: 1949,
+    // occupation: "singer, songwriter" }
+```
 
 ## <a name="chapter7"></a>Chapter 7 - [Top](#Top)
+> Note: pretty theoretical chapter
 ## Scope
+Scope determines when and where variables, constants, and arguments are considered to be defined. We've already explored this concept somewhat in [Chapter 3](#chapter3). As a reminder, consider the following.
+```
+function f(x) {
+    return x + 3;
+}
+f(5); // 8
+x; // ReferenceError: x is not defined
+```
+> Note: a function may be called multiple times: each time the function is called, its arguments come into existence, and then go out of scope when the function returns
+
 #### Scope Versus Existence
+It’s intuitively obvious that if a variable doesn’t exist, it’s not in scope. Conversely, if a variable is not in scope, does that mean it doesn’t exist? Not necessarily, and this is where we must make a distinction between scope and existence.
+
+
+Scope (or visibility) refers to the identifiers that are currently visible and accessible by the currently executing part of the program (called the execution context). Existence, on the other hand, refers to identifiers that hold something for which memory has been allocated (reserved). 
+
+
+When something ceases to exist, JavaScript doesn’t necessarily reclaim the memory right away: it simply notes that the item no longer needs to be kept around, and the memory is periodically reclaimed in a process called garbage collection. Garbage collection in JavaScript is automatic, and outside of certain highly demanding applications, isn’t something you’ll need to concern yourself with.
+
 #### Lexical Versus Dynamic Scoping
-#### Global Scope
-#### Block Scope
+When you look at the source code for a program, you are looking at its lexical structure.
+
+
+Lexical scoping means whatever variables are in scope where you define a function from (as opposed to when you call it) are in scope in the function. Consider this example:
+```
+const x = 3;
+function f() {
+    console.log(x); // this will work
+    console.log(y); // this will cause a crash
+}
+
+const y = 3;
+f();
+```
+The variable x exists when we define the function f, but y doesn’t. Then we declare y and call f, and see that x is in scope inside the body of f when it’s called, but y isn’t. This is an example of lexical scoping: the function f has access to the identifiers that were available when it was defined, not when it was called.
+> Lexical scoping in JavaScript applies to global scope, block scope, and function scope.
+
+#### Global Scope, Block Scope (pg.119) - I reccomend reading over this if you don't understand what Global and Block Scope is yet.
+
+
 #### Variable Masking
+A common source of confusion is variables or constants with the same name in different scopes.
+```
+{
+    // outer block
+    let x = { color: "blue" };
+    let y = x; // y and x refer to the same object
+    let z = 3;
+    {
+        // inner block
+        let x = 5; // outer x now masked
+        console.log(x); // logs 5
+        console.log(y.color); // logs "blue"; object pointed to by
+        // y (and x in the outer scope) is
+        // still in scope
+        y.color = "red";
+        console.log(z); // logs 3; z has not been masked
+    }
+    console.log(x.color); // logs "red"; object modified in inner scope
+    console.log(y.color); // logs "red"; x and y point to the same object
+    console.log(z); // logs 3
+}
+```
+> Note: variable masking is sometimes called variable shadowing (that is, a variable with the same name will shadow the variable in the outer scope).
+By now, it should be clear that scope is hierarchical: you can enter a new scope without leaving the old one. This establishes a scope chain that determines what variables are in scope: all variables in the current scope chain are in scope, and (as long as they’re not masked), can be accessed.
+
 #### Functions, Closures, and Lexical Scope
 #### Immediately Invoked Function Expressions
 #### Function Scope and Hoisting
