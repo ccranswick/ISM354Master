@@ -668,7 +668,7 @@ One can think of operators as the metaphorical "verbs" of programming languages
 | ++() | Pre-Increment | ++x // increment by 1, evaluates new value |
 | ()++ | Post-Increment | x++ // increment by 1, evaluates old value |
 | --() | Pre-Decrement | --x // decrement by 1, evaluates new value |
-| ()-- | Post-Decrement | x-- // decrement by 1, evaluates new value |
+| ()-- | Post-Decrement | x-- // decrement by 1, evaluates old value |
 
 #### Operator Precedence
 * Follows PEMDAS - “Please Excuse My Dear Aunt
@@ -1057,7 +1057,8 @@ updateBruce1949("singer, songwriter");
 ```
 
 ## <a name="chapter7"></a>Chapter 7 - [Top](#Top)
-> Note: pretty theoretical chapter
+> Note: pretty theoretical chapter, hard to summarise so I suggest that one should read through chapter 7
+
 ## Scope
 Scope determines when and where variables, constants, and arguments are considered to be defined. We've already explored this concept somewhat in [Chapter 3](#chapter3). As a reminder, consider the following.
 ```
@@ -1096,6 +1097,7 @@ f();
 The variable x exists when we define the function f, but y doesn’t. Then we declare y and call f, and see that x is in scope inside the body of f when it’s called, but y isn’t. This is an example of lexical scoping: the function f has access to the identifiers that were available when it was defined, not when it was called.
 > Lexical scoping in JavaScript applies to global scope, block scope, and function scope.
 
+
 #### Global Scope, Block Scope (pg.119) - I reccomend reading over this if you don't understand what Global and Block Scope is yet.
 
 
@@ -1123,14 +1125,156 @@ A common source of confusion is variables or constants with the same name in dif
 }
 ```
 > Note: variable masking is sometimes called variable shadowing (that is, a variable with the same name will shadow the variable in the outer scope).
-By now, it should be clear that scope is hierarchical: you can enter a new scope without leaving the old one. This establishes a scope chain that determines what variables are in scope: all variables in the current scope chain are in scope, and (as long as they’re not masked), can be accessed.
+By now, it should be clear that scope is hierarchical: you can enter a new scope without leaving the old one. This establishes a SCOPE CHAIN that determines what variables are in scope: all variables in the current scope chain are in scope, and (as long as they’re not masked), can be accessed.
 
 #### Functions, Closures, and Lexical Scope
-#### Immediately Invoked Function Expressions
+Closure
+
+It’s quite common to intentionally define a function in a specific scope so that it explicitly has access to that scope. This is usually called a *closure* (you can think of closing the scope around the function). Let’s look at an example of a closure.
+```
+let globalFunc; // undefined global function
+{
+    let blockVar = 'a'; // block-scoped variable
+    globalFunc = function() {
+        console.log(blockVar);
+    }
+}
+globalFunc(); // logs "a"
+```
+globalFunc is assigned a value within a block: that block (and its parent scope, the global scope) form a closure. No matter where you call globalFunc from, it will have access to the identifiers in that closure. Consider the important implications of this: when we call globalFunc, it has access to blockVar despite the fact that we’ve exited that scope. Normally, when a scope is exited, the variables declared in that scope can safely cease to exist. 
+
+
+So defining a function within a closure can affect the closure’s lifetime; it also allows
+us to access things we wouldn’t normally have access to. Consider this example:
+```
+let f; // undefined function
+{
+    let o = { note: 'Safe' };
+    f = function() {
+    return o;
+    }
+}
+let oRef = f();
+oRef.note = "Not so safe after all!";
+```
+Normally, things that are out of scope are strictly inaccessible. Functions are special in that they allow us a window into scopes that are otherwise inaccessible. 
+
+#### Immediately Invoked Function Expressions (IIFE)
+An IIFE declares an anonymous (has no identifier) function and then runs it immediately, they follow this pattern:
+```
+(function() {
+    // this is the IIFE body
+})();
+
+// Turning a function into an IIFE
+// Normal
+function f() {
+    console.log("Hello, World!");
+}
+f(); // Hello, World!
+// IIFE
+(function(){console.log("Hello, World!");})(); // Hello, World!
+```
+> (f)(); === (function(){})();
+An example of an IIFE that you've already seen is the async function in the React project.
+> Note: one can see the use of arrow notation and IIFE
+```
+(async () => {
+    console.log(await api.get('/clients'));
+})();
+```
+
 #### Function Scope and Hoisting
+When you declare a variable with *let*, it doesn’t spring into existence until you declare it. When you declare a variable with var, it’s available everywhere in the current scope, EVEN BEFORE it’s declared. 
+
+Let
+```
+x; // ReferenceError: x is not defined
+let x = 3; // we'll never get here -- the error stops execution
+```
+Var
+```
+x; // undefined
+var x = 3;
+x; // 3
+```
+This is called *Hoisting*. JS scans the entire scope of the program and any variables declared with *var* are *hoisted* to the top.
+> Note: only the declaration is hoisted, NOT the assignment.
+```
+// what you write           // how JavaScript interprets it
+                            var x;
+                            var y;
+if(x !== 3) {               if(x !== 3) {
+ console.log(y);                console.log(y);
+ var y = 5;                     y = 5;
+ if(y === 5) {                  if(y === 5) {
+ var x = 3;                         x = 3;
+ }                              }
+ console.log(y);                console.log(y);
+}                           }
+if(x === 3) {               if(x === 3) {
+ console.log(y);                console.log(y);
+}                           }
+```
+
 #### Function Hoisting
+Similarily, functions can be *hoisted*.
+```
+f(); // logs "f"
+
+function f() {
+    console.log('f');
+}
+```
+> Note: function expressions that are assigned to variables are not hoisted; rather, they are subject to the scoping rules of variables. 
+```
+f(); // TypeError: f is not a function
+
+let f = function() {
+    console.log('f');
+}
+```
+
 #### The Temporal Dead Zone
+The temporal dead zone (TDZ) is a dramatic expression for the intuitive concept that variables declared with let don’t exist until you declare them. Within a scope, the TDZ for a variable is the code before the variable is declared.
+> Note: this will only conceptually confuse those who are familiar with JS prior to ES6.
+
 #### Strict Mode
+The syntax of ES5 allowed for something called implicit globals, which have been the
+source of many frustrating programming errors. In short, if you forgot to declare a
+variable with var, JavaScript would merrily assume you were referring to a global
+variable. If no such global variable existed, it would create one! You can imagine the
+problems this caused.
+
+
+For this (and other) reasons, JavaScript introduced the concept of strict mode, which
+would prevent implicit globals. Strict mode is enabled with the string "use strict"
+(you can use single or double quotes) on a line by itself, before any other code. If you
+do this in global scope, the entire script will execute in strict mode, and if you do it in
+a function, the function will execute in strict mode.
+
+
+Because strict mode applies to the entire script if used in the global scope, you should
+use it with caution. Many modern websites combine various scripts together, and
+strict mode in the global scope of one will enable strict mode in all of them. While it
+would be nice if all scripts worked correctly in strict mode, not all of them do. So it’s
+generally inadvisable to use strict mode in global scope. If you don’t want to enable
+strict mode in every single function you write (and who would?), you can wrap all of
+your code in one function that’s executed immediately.
+```
+(function() {
+    'use strict';
+    // all of your code goes here...it
+    // is executed in strict mode, but
+    // the strict mode won't contaminate
+    // any other scripts that are combined
+    // with this one
+})();
+
+```
+Strict mode is generally considered a good thing.
+
+
 
 Useful links:
 
