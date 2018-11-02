@@ -980,6 +980,7 @@ As can be seen from above, the identifier for the function is not the f() but ra
 
 ### Arrow Notation
 > also called "Fat Arrow"
+
 Arrow Notation allows us to do a number of different things.
 * You can omit the word "Function"
 * If the function takes a single arugment, you can omit the parentheses.
@@ -1095,7 +1096,7 @@ const y = 3;
 f();
 ```
 The variable x exists when we define the function f, but y doesn’t. Then we declare y and call f, and see that x is in scope inside the body of f when it’s called, but y isn’t. This is an example of lexical scoping: the function f has access to the identifiers that were available when it was defined, not when it was called.
-> Lexical scoping in JavaScript applies to global scope, block scope, and function scope.
+> Note: lexical scoping in JavaScript applies to global scope, block scope, and function scope.
 
 
 #### Global Scope, Block Scope (pg.119) - I reccomend reading over this if you don't understand what Global and Block Scope is yet.
@@ -1125,6 +1126,7 @@ A common source of confusion is variables or constants with the same name in dif
 }
 ```
 > Note: variable masking is sometimes called variable shadowing (that is, a variable with the same name will shadow the variable in the outer scope).
+
 By now, it should be clear that scope is hierarchical: you can enter a new scope without leaving the old one. This establishes a SCOPE CHAIN that determines what variables are in scope: all variables in the current scope chain are in scope, and (as long as they’re not masked), can be accessed.
 
 #### Functions, Closures, and Lexical Scope
@@ -1176,6 +1178,7 @@ f(); // Hello, World!
 (function(){console.log("Hello, World!");})(); // Hello, World!
 ```
 > (f)(); === (function(){})();
+
 An example of an IIFE that you've already seen is the async function in the React project.
 > Note: one can see the use of arrow notation and IIFE
 ```
@@ -1273,7 +1276,6 @@ your code in one function that’s executed immediately.
 
 ```
 Strict mode is generally considered a good thing.
-
 
 
 Useful links:
