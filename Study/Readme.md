@@ -8,7 +8,7 @@
 ## Content:
 1. JavaScript
 * Content from Learning JavaScript 3rd Edition
-* Chapters 3–7
+* <a href="https://github.com/Danebrouwer97/ISM354Master/tree/master/Study/Javascript/Chapters%203-7">Chapters 3–7</a>
     * Five Short Programming Questions
     * [5 x 5 points]
     * ex. Write a loop to print 1–10.
