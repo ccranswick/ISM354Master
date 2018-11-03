@@ -144,7 +144,7 @@ This brings us to our next topic under strings, Escaping and Special Characters.
 | \t | Tab | "Hello\tWorld" |
 | \\' | Single Quotation | 'Don\\'t clap!' |
 | \\" | Double Quotation | "Say, \\"Hello.\\"" |
-| \$ | Dollar Sign | \`Hey ${user_name}!\` |
+| \\$ | Dollar Sign | \`Hey ${user_name}!\` |
 | \\\ | Backslash | "5\\\5 equals 1" |
 | \uXXXX | Unicode Point | "Alpha Symbol: \u03B1" |
 | \xXX | Latin-1 Character | "Mu Symbol: \xDF" |
@@ -152,6 +152,7 @@ This brings us to our next topic under strings, Escaping and Special Characters.
 | \v | Vertical Tab | "Vertical Tab: \v" |
 | \b | Backspace | "Backspace: \b" |
 | \f | Form Feed | "Form Feed: \f" |
+
 Numbers in Strings
 ```
 const result1 = 3 + '30';
