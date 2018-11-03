@@ -766,7 +766,7 @@ Case 2:
 | x%=y | x = x % y |
 | x^=y | x = x ^ y |
 | x&=y | x = x & y |
-| x|=y | x = x | y |
+| x\|=y | x = x \| y |
 
 #### Destructuring Assignment
 Allows you to take an object or an array and destructure it into individual variables.
