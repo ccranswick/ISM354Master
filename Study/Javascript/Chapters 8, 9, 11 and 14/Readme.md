@@ -262,7 +262,7 @@ const names = cart.map((item,index,array) =>
 {Widget,9.95}:0:[{Widget,9.95},{Gadget,22.95}]
 {Gadget,22.95}:1:[{Widget,9.95},{Gadget,22.95}]
 ```
-> Note: java returns object Object if you try to display an enumerable object. I used *Object.values()* to get the values out of the array.
+> Note: java returns object Object if you try to display an enumerable object. I used *Object.values()* to get the values out of the array. see [String Representation](#stringrep)
 ```
 // Without Object.values()
 console.log(`
@@ -475,7 +475,7 @@ c: 3
 ```
 There's 3 things to note here:
 1. You may omit o.hasOwnProperty()
-2. o.hasOwnProperty() solves the issue of inheritence
+2. o.hasOwnProperty() solves the issue of inheritence - See [The Prototype](#proto)
 3. Symbols do not get iterated through
 
 #### Object.keys
@@ -558,10 +558,225 @@ set userGear(value) {
     if(this._userGears.indexOf(value) < 0) {
         throw new Error(`Invalid gear: ${value}`);
     }
-    this._userGear = vaule;
+    this._userGear = value;
 }
 shift(gear) { this.userGear = gear; }
 ```
+We can **still** directly set the value of the gear directly.
+```
+car1._userGear = 'X';
+```
+> Note: this is called the "poor man's access restriction" - prefixing properties, we consider private, with an underscore
+
+If one really wants to prevent this, you can use an instance of *WeakMap*, this protects the value through scope.
+> Note: this should be covered in Chapter 10
+```
+const Car = (function() {
+    const carProps = new WeakMap();
+
+    class Car {
+        constructor(make, model) {
+            this.make = make;
+            this.model = model;
+            this._userGears = ['P', 'N', 'R', 'D'];
+            carProps.set(this, { userGear: this._userGears[0] });
+        }
+
+        get userGear() { return carProps.get(this).userGear; }
+        set userGear(value) {
+            if(this._userGears.indexOf(value) < 0) {
+                throw new Error(`Invalid gear: ${value}`);
+            }
+            carProps.get(this).userGear = value;
+            }
+
+        shift(gear) { this.userGear = gear; }
+    }
+
+    return Car;
+})();
+```
+It's clear that an IIFE is used to ensconce the *WeakMap* in order to prevent access from outside the scope.
+
+#### Classes Are Function
+> Note: a class is really just a function in ES6. There is just added *syntactic sugar*.
+```
+function Car(make, model) {
+    this.make = make;
+    this.model = model;
+    this._userGears = ['P', 'N', 'R', 'D'];
+    this._userGear = this.userGears[0];
+}
+```
+
+#### <a name="proto"></a>The Prototype
+Every function has a special property called prototype. (You can vary this for any function f by typing f.prototype at the console.) For regular functions, the prototype isn’t used, but it’s critically important for functions that act as object constructors.
+
+What’s important about the prototype is a mechanism called dynamic dispatch (“dispatch” is another word for method invocation). When you attempt to access a property or method on an object, if it doesn’t exist, JavaScript checks the object’s prototype to see if it exists there. Because all instances of a given class share the same prototype, if there is a property or method on the prototype, all instances of that class have access to that property or method.
+> Note: defining a method or property on an instance will override the version in the prototype
+```
+// class Car as defined previously, with shift method
+const car1 = new Car();
+const car2 = new Car();
+car1.shift === Car.prototype.shift; // true
+car1.shift('D');
+car1.shift('d'); // error
+car1.userGear; // 'D'
+car1.shift === car2.shift // true
+
+car1.shift = function(gear) { this.userGear = gear.toUpperCase(); }
+car1.shift === Car.prototype.shift; // false
+car1.shift === car2.shift; // false
+car1.shift('d');
+car1.userGear; 
+```
+This example clearly demonstrates the way JavaScript performs dynamic dispatch. Initially, the object car1 doesn’t have a method shift, but when you call *car1.shift('D')*, JavaScript looks at the prototype for car1 and finds a method of that name. When we replace shift with our own home-grown version, both car1 and its prototype have a method of this name. When we invoke *car1.shift('d')*, we are now invoking the method on car1, not its prototype.
+
+#### Static Methods
+In a static method, this is bound to the class itself, but it’s generally considered best practice to use the name of the class instead of this. Static methods are used to perform generic tasks that are related to the class, but not
+any specific instance.
+
+> We’ll use the example of car VINs (vehicle identification numbers). It doesn’t make sense for an individual car to be able to generate its own VIN: what would stop a car from using the same VIN as another car? However, assigning a VIN is an abstract concept that is related to the idea of cars in general; hence, it’s a candidate to be a static method. Also, static methods are often used for methods that operate on multiple vehicles. For example, we may wish to have a method called *areSimilar* that returns true if two cars have the same make and model and *areSame* if two cars have the same VIN. 
+```
+class Car {
+    static getNextVin() {
+        return Car.nextVin++; // we could also use this.nextVin++ but referring to Car emphasizes that this is a static method
+    }
+
+    constructor(make, model) {
+        this.make = make;
+        this.model = model;
+        this.vin = Car.getNextVin();
+    }
+
+    static areSimilar(car1, car2) {
+        return car1.make===car2.make && car1.model===car2.model;
+    }
+
+    static areSame(car1, car2) {
+        return car1.vin===car2.vin;
+    }
+}
+Car.nextVin = 0;
+
+const car1 = new Car("Tesla", "S");
+const car2 = new Car("Mazda", "3");
+const car3 = new Car("Mazda", "3");
+
+car1.vin; // 0
+car2.vin; // 1
+car3.vin // 2
+
+Car.areSimilar(car1, car2); // false
+Car.areSimilar(car2, car3); // true
+Car.areSame(car2, car3); // false
+Car.areSame(car2, car2); // true
+```
+
+#### Inheritance
+In understanding the prototype, we’ve already seen an inheritance of a sort: when you create an instance of a class, it inherits whatever functionality is in the class’s prototype. It doesn’t stop there, though: if a method isn’t found on an object’s prototype, it checks the prototype’s prototype. In this way, a prototype chain is established. JavaScript will walk up the prototype chain until it finds a prototype that satisfies the request. If it can find no such prototype, it will finally error out.
+```
+class Vehicle {
+    constructor() {
+        this.passengers = [];
+        console.log("Vehicle created");
+    }
+
+    addPassenger(p) {
+        this.passengers.push(p);
+    }  
+}
+
+class Car extends Vehicle {
+    constructor() {
+        super();
+        console.log("Car created");
+    }
+
+    deployAirbags() {
+        console.log("BWOOSH!");
+    }
+}
+```
+> Note: the *EXTENDS* is important as it establishes the **prototype chain.**
+```
+const v = new Vehicle();
+v.addPassenger("Frank");
+v.addPassenger("Judy");
+v.passengers; // ["Frank", "Judy"]
+
+const c = new Car();
+c.addPassenger("Alice");
+c.addPassenger("Cameron");
+c.passengers; // ["Alice", "Cameron"]
+
+v.deployAirbags(); // error
+c.deployAirbags(); // "BWOOSH!"
+```
+
+#### Polymorphism
+Parlance for treating an instance as a member of not only its own class, but also any superclasses. 
+> Note: *extends* will establish *superclasses*.
+
+As such, consider:
+```
+class Motorcycle extends Vehicle {}
+const c = new Car();
+const m = new Motorcyle();
+c instanceof Car; // true
+c instanceof Vehicle; // true
+m instanceof Car; // false
+m instanceof Motorcycle; // true
+m instanceof Vehicle; // true
+```
+
+#### Enumerating Object Properties: Revisited
+We’ve already seen how we can enumerate the properties in an object with for...in. Now that we understand prototypal inheritance, we can fully appreciate the use of *hasOwnProperty* when enumerating the proprties of an object. For an *object obj* and a *property x*, *obj.hasOwnProperty(x)* will return **true** if *obj* has the *property x*, and **false** if the property *isn’t defined* or is defined in the *prototype chain.*
+```
+class Super {
+    constructor() {
+        this.name = 'Super';
+        this.isSuper = true;
+    }
+}
+
+// this is valid, but not a good idea...
+Super.prototype.sneaky = 'not recommended!';
+
+class Sub extends Super {
+    constructor() {
+        super();
+        this.name = 'Sub';
+        this.isSub = true;
+    }
+}
+
+const obj = new Sub();
+for(let p in obj) {
+    console.log(`${p}: ${obj[p]}` +
+    (obj.hasOwnProperty(p) ? '' : ' (inherited)'));
+}
+
+------ Console Output ------
+name: Sub
+isSuper: true
+isSub: true
+sneaky: not recommended! (inherited)
+```
+
+#### <a name="stringrep"></a>String Representation
+Every object ultimately inherits from Object, so the methods available on Object are by default available for all objects. One of those methods is toString, whose purpose is to provide a default string representation of an object. The default behavior of toString is to return "[object Object]" 
+
+Having a toString method that says something descriptive about an object can be useful for debugging, allowing you to get important information about the object at a glance. 
+```
+class Car {
+    toString() {
+        return `${this.make} ${this.model}: ${this.vin}`;
+    }
+//...
+```
+
+#### Multiple Inheritance, Mixins, and Interfaces
 
 ## <a name="chapter11"></a>Chapter 11 - [Top](#Top)
 ## <a name="chapter14"></a>Chapter 14 - [Top](#Top)
