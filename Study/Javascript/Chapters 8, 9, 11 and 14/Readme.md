@@ -503,6 +503,65 @@ class Car {
     }
 }
 ```
+This establishes a new *class* called Car. The *constructor* has been created along side the declaration of the new class.
+```
+const car1 = new Car();
+const car2 = new Car();
+```
+This creates two new *instances* of the Car class. We can check whether these are truly instances of the class by using the *instanceof* operator.
+* Using *instanceof* one has two options:
+    1. (instance)instanceof(type/class)
+    2. instance instanceof type/class
+> Note: the parethesis are optional, but should be used for ease of reading
+```
+car1 instanceof Car // true
+car1 instanceof Array // false
+```
+Let's add some functionality to this Car class.
+```
+class Car {
+    constructor(make, model) {
+        this.make = make;
+        this.model = model;
+        this.userGears = ['P', 'N', 'R', 'D'];
+        this.userGear = this.userGears[0];
+    }
+
+    shift(gear) {
+        if(this.userGears.indexOf(gear) < 0) {
+            throw new Error(`Invalid gear: ${gear}`);
+        }
+        this.userGear = gear;
+    }
+}
+```
+Using the above example:
+```
+const car1 = new Car("Tesla", "Model S");
+const car2 = new Car("Mazda", "3i");
+car1.shift('D');
+car2.shift('R');
+
+car1.userGear // "D"
+car2.userGear // "R"
+```
+
+#### Dynamic Properties
+The *shift* method may seem clever but it doesn't prevent us from setting it directly:
+```
+car1.userGear = 'X'
+```
+**Dynamic Properties** can help mitigate this weakness.
+```
+get userGear() { return this._userGear; }
+set userGear(value) {
+    if(this._userGears.indexOf(value) < 0) {
+        throw new Error(`Invalid gear: ${value}`);
+    }
+    this._userGear = vaule;
+}
+shift(gear) { this.userGear = gear; }
+```
 
 ## <a name="chapter11"></a>Chapter 11 - [Top](#Top)
 ## <a name="chapter14"></a>Chapter 14 - [Top](#Top)
