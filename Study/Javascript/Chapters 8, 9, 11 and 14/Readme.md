@@ -1,5 +1,6 @@
 # <a name="Top"></a>TABLE OF CONTENTS
 * [Chapter 8](#chapter8)
+    * [Quick Overview](#ch8ov)
 * [Chapter 9](#chapter9)
 * [Chapter 11](#chapter11)
 * [Chapter 14](#chapter14)
@@ -14,14 +15,11 @@ const arr1 = [1, 2, 3]; // array of numbers
 const arr2 = ["one", 2, "three"]; // nonhomogeneous array
 const arr3 = [[1, 2, 3], ["one", 2, "three"]]; // array containing arrays
 const arr4 = [ // nonhomogeneous array
- { name: "Fred", type: "object", luckyNumbers = [5, 7, 13] },
- [
- { name: "Susan", type: "object" },
- { name: "Anthony", type: "object" },
- ],
- 1,
- function() { return "arrays can contain functions too"; },
- "three",
+    { name: "Fred", type: "object", luckyNumbers = [5, 7, 13] },
+    [{ name: "Susan", type: "object" },{ name: "Anthony", type: "object" }],
+    1,
+    function() { return "arrays can contain functions too"; },
+    "three",
 ];
 
 // accessing elements
@@ -239,13 +237,272 @@ const arr = [4, 6, 16, 36];
 arr.every(x => x%2===0); // true; no odd numbers
 arr.every(x => Number.isInteger(Math.sqrt(x))); // false; 6 is not square
 ```
->> Note: *some* can be considered as *or*, *every* can be considered as *and*.
+> Note: *some* can be considered as *or*, *every* can be considered as *and*.
 
 ### Fundamental Array Operations
 #### Map and Filter
+**Map**
+* The map() method creates a new array with the results of calling a provided function on every element in the calling array. So .map will loop through every element of the provided array. 
+
+**.map((a, b, c) => ...)**
+* a - array ITEM
+* b - array INDEX
+* c - array ITSELF
+```
+const cart = [{ name: "Widget", price: 9.95 }, { name: "Gadget", price: 22.95 }];
+const names = cart.map((item,index,array) =>
+    console.log(`
+        {${Object.values(item)}}:
+        ${index}:
+        [{${Object.values(array[0])}},
+        {${Object.values(array[1])}}]
+    `));
+
+------ Console Output ------
+{Widget,9.95}:0:[{Widget,9.95},{Gadget,22.95}]
+{Gadget,22.95}:1:[{Widget,9.95},{Gadget,22.95}]
+```
+> Note: java returns object Object if you try to display an enumerable object. I used *Object.values()* to get the values out of the array.
+```
+// Without Object.values()
+console.log(`
+    ${item}:
+    ${index}:
+    ${array}
+`));
+
+------ Console Output ------
+[object Object]:0:[object Object],[object Object]
+[object Object]:1:[object Object],[object Object]
+```
+See more examples.
+```
+const cart = [ { name: "Widget", price: 9.95 }, { name: "Gadget", price: 22.95 }];
+const names = cart.map(x => x.name); // ["Widget", "Gadget"]
+const prices = cart.map(x => x.price); // [9.95, 22.95]
+const discountPrices = prices.map(x => x*0.8); // [7.96, 18.36]
+```
+While all the other functions use the arrow notation to denote an anonymous function:
+```
+const lcNames = names.map(String.toLowerCase); // ["widget", "gadget"]
+```
+The above simply uses a function 
+
+**Filter**
+* As the name implies, is designed to remove unwanted things from an array. Like map, it returns a new array with elements removed. One has to provide a function to determine which elements to remove.
+```
+// create a deck of playing cards
+const cards = [];
+for(let suit of ['H', 'C', 'D', 'S']) { // hearts, clubs, diamonds, spades
+    for(let value=1; value<=13; value++) {
+    cards.push({ suit, value }); 
+    }
+}
+
+// get all cards with value 2:
+cards.filter(c => c.value === 2); // [
+        // { suit: 'H', value: 2 },
+        // { suit: 'C', value: 2 },
+        // { suit: 'D', value: 2 },
+        // { suit: 'S', value: 2 }
+        // ]
+
+// (for the following, we will just list length, for compactness)
+// get all diamonds:
+cards.filter(c => c.suit === 'D'); // length: 13
+// get all face cards
+cards.filter(c => c.value > 10); // length: 12
+// get all face cards that are hearts
+cards.filter(c => c.value > 10 && c.suit === 'H'); // length: 3
+```
+Hopefully you can start to see how map and filter can be combined 
+
+#### Reduce
+Where map transforms each element in the array, **reduce** transforms the entire array. Like map and filter, *reduce* allows you to provide a function that controls the outcome. In the callbacks we’ve dealt with heretofore, the first element passed into the callback is always the current array element.  
 
 
+In addition to taking a callback, **reduce** takes an (optional) initial value for the accumulator.
+
+
+**.reduce((a, b, c, d) => ... , e)**
+* a - array accumulator (eg. arr[0])
+* b - array ITEM
+* c - array INDEX
+* d - array ITSELF
+* e - array accumulator initial value
+```
+const arr = [1,2,3,4];
+var sum = arr.reduce((a,b,c,d) => {console.log(`
+initial value:${a}\narray item:${b}\narray index:${c}\narray itself:${d}`);});
+
+sum = arr.reduce((a,b)=>a+=b);
+console.log(sum);
+
+------ Console Output ------
+initial value:1
+array item:2
+array index:1
+array itself:1,2,3,4
+
+initial value:undefined
+array item:3
+array index:2
+array itself:1,2,3,4
+
+initial value:undefined
+array item:4
+array index:3
+array itself:1,2,3,4
+10
+```
+> Note: the initial value (a) should change, however in the *console.log()* it never changes and therefore results in the *undefined*.
+Another simpler example:
+```
+const arr = [5, 7, 2, 4];
+const sum = arr.reduce((a, x) => a += x, 0);
+
+console.log(sum);
+
+------ Console Output ------
+18
+```
+
+### Array Methods and Deleted or Never-Defined Elements
+One behavior of the Array methods that often trips people up is the way they treat elements that have never been defined or have been deleted. map, filter, and reduce do not invoke the function for elements that have never been assigned or have been deleted.
+```
+const arr = Array(10).map(function(x) { return 5 });
+```
+> Note: this will fail.
+arr would still be an array with 10 elements, all undefined. Similarly, if you delete an element from the middle of an array, and then call map, you’ll get an array with a “hole” in it:
+```
+const arr = [1, 2, 3, 4, 5];
+delete arr[2];
+arr.map(x => 0); // [0, 0, <1 empty slot>, 0, 0]
+```
+In practice, this is seldom a problem because you’re normally working with arrays whose elements have been explicitly set (and unless you explicitly want a gap in an array, which is rare, you won’t use delete on an array), but it’s good to be aware of.
+
+#### String Joining
+Very often, you simply want to join the (string) value of the elements in an array together with some separator.
+
+Use:
+* (array).*join*()
+
+You can parse a separator into the *join()* function, this can be anything you like.
+```
+const arr = [1, null, "hello", "world", true, undefined];
+delete arr[3];
+arr.join(); // "1,,hello,,true,"
+arr.join(''); // "1hellotrue"
+arr.join(' -- '); // "1 -- -- hello -- -- true --"
+```
+If used cleverly—and combined with string concatenation.
+```
+const attributes = ["Nimble", "Perceptive", "Generous"];
+const html = '<ul><li>' + attributes.join('</li><li>') + '</li></ul>';
+// html: "<ul><li>Nimble</li><li>Perceptive</li><li>Generous</li></ul>";
+```
+
+#### <a name="ch8ov"></a>Table Summaries - [Top](#Top)
+Array Function Arguments.
+
+| Method | Description |
+|:-----------:|:---------------------------------------------------------------:|
+| Reduce Only | Accumulator (initial value, or return value of last invocation) |
+| All | Element (value of current element) |
+| All | Index of current element |
+| All | Array itself (rarely useful) |
+
+
+Array Content Manipulation.
+
+| When you need | Use | In-place or new array |
+|:--------------------------------------:|:--------------:|:---------------------:|
+| Create an array (last in, first out) | push, pop | in-place |
+| Create a queue (first in, first out) | unshift, shift | in-place |
+| Add multiple elements at end | concat | new array |
+| Get subarray | slice | new array |
+| Add or remove elements at any position | splice | in-place |
+| Cut and replace within array | copyWithin | in-place |
+| Fill an array | fill | in-place |
+| Reverse an array | reverse | in-place |
+| Sort an array | sort | in-place |
+
+
+Array Searching
+
+| When you want to know/find | Use |
+|:--------------------------------------:|:------------------:|
+| The index of an item | indexOf, findIndex |
+| The last index of an item | lasIndexOf |
+| The item itself | find |
+| Whether the array matches any criteria | some |
+| Whether the array matches all criteria | every |
+
+
+Array Transformation
+
+| When you want to | Use | In-place or new array |
+|:--------------------------------------------:|:------:|:---------------------:|
+| Transform every element | map | new array |
+| Eliminates elements based on criteria | filter | new array |
+| Transform entire array to another data type | reduce | new array |
+| Convert elements to string and join together | join | new array |
 
 ## <a name="chapter9"></a>Chapter 9 - [Top](#Top)
+### Property Enumeration
+In general, if you want to list out the contents of the container (called enumeration), you probably want an array, not an object. But objects are containers, and do support property enumeration; you just need to be aware of the special complexities involved.
+> Note: property enumeration order isn’t guaranteed! Don’t be lulled into a false sense of security by anecdotal testing: never assume a given order of enumeration for properties.
+
+#### for ...in
+The traditional way to enumerate the properties of an object is *for...in.*
+```
+const SYM = Symbol();
+const o = { a: 1, b: 2, c: 3, [SYM]: 4, d:5 };
+for(let prop in o) {
+    if(!o.hasOwnProperty(prop)) { 
+        continue; 
+    }
+    console.log(`${prop}: ${o[prop]}`);
+}
+
+console.log(o[SYM])
+
+------ Console Output ------
+a: 1
+b: 2
+c: 3
+4
+```
+There's 3 things to note here:
+1. You may omit o.hasOwnProperty()
+2. o.hasOwnProperty() solves the issue of inheritence
+3. Symbols do not get iterated through
+
+#### Object.keys
+Object.keys gives us a way to get all of the enumerable string properties of an object as an array, while simultaneously solving the issue of *hasOwnProperty()*.
+
+Example:
+```
+const o = { apple: 1, xochitl: 2, balloon: 3, guitar: 4, xylophone: 5, };
+Object.keys(o)
+    .filter(prop => (prop[0]==='x')) //where the first letter is 'x'
+    .forEach(prop => console.log(`${prop}: ${o[prop]}`));
+```
+> Note: see how the *filter* returns an iterable array that can then be *logged* using the *forEach* method.
+
+### Object-Oriented Programming (OOP)
+The basic idea is simple and intuitive: an object is a logically related collection of data and functionality. It’s designed to reflect our natural understanding of the world. A car is an object that has data (make, model, number of doors, VIN, etc.) and functionality (accelerate, shift, open doors, turn on headlights, etc.). Furthermore, OOP makes it possible to think about things abstractly (a car) and concretely (a specific car).
+
+
+Before we dive in, let’s cover the basic vocabulary of OOP. A *class* refers to a generic thing (a car). An *instance* (or object instance) refers to a specific thing (a specific car, such as “My Car”). A piece of functionality (accelerate) is called a *method*. A piece of functionality that is related to the class, but doesn’t refer to a specific instance, is called a *class method* (for example, “create new VIN” might be a class method: it doesn’t yet refer to a specific new car, and certainly we don’t expect a specific car to have the knowledge or ability to create a new, valid VIN). When an instance is *first created*, its *constructor* runs. The constructor initializes the object instance.
+
+#### Class and Instance Creation
+```
+class Car {
+    constructor() {
+    }
+}
+```
+
 ## <a name="chapter11"></a>Chapter 11 - [Top](#Top)
 ## <a name="chapter14"></a>Chapter 14 - [Top](#Top)
