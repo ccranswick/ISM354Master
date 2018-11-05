@@ -857,8 +857,9 @@ checkEmail(email);
 Uncaught Error: Invalid Email: JonesATgmail.com
 ```
 
-#### Exception Handling with try and catch
+#### Exception Handling with try and catch (try ...catch ...finally)
 It's a very simple process of being able to catch *any* exception in your code.
+> Note: catch only runs if the try encounters a *runtime* error
 ```
 const array=[0,1,2];
 
@@ -866,10 +867,15 @@ try {
   	array = [3,4,5];
 } catch(err) {
     console.error(`Error: ${err.message}`);
+} finally {
+    console.log("...always executed");
+    console.log("perform cleanup here");
 }
 
 ------ Console Output ------
 Error: Assignment to constant variable.
+...always executed
+perform cleanup here
 ```
 
 #### Throwing Errors
@@ -887,4 +893,68 @@ try {
 TypeError: Assignment to constant variable.
 ```
 
+#### Exception Handling and the Call Stack
+A typical program will call functions, and those functions will in turn call other functions, and those functions even more functions, and so on. The JavaScript interpreter has to keep track of all of this. If function a calls function b and function b calls function c, when function c finishes, control is returned to function b, and when b finishes, control is returned to function a. When c is executing, therefore, neither *a* nor b is “done.” This nesting of functions that are not done is called the *call stack.*
+> Note: some of you may of seen a "Stack Overflow Error" before. 
+
+When an error is caught, the call stack provides useful information in diagnosing the problem. For example, if function a calls function b, which calls function c, and the error occurs in c, the call stack tells you that not only did the error occur in c, it occurred when it was called by b when b was called by a. This is helpful information if function c is called from many different places in your program.
+
+In most implementations of JavaScript, instances of Error contain a property stack, which is a string representation of the stack (it is a nonstandard feature of JavaScript, but it is available in most environments). Armed with this knowledge, we can write an example that demonstrates exception handling:
+```
+function a() {
+    console.log('a: calling b');
+    b();
+    console.log('a: done');
+}
+function b() {
+    console.log('b: calling c');
+    c();
+    console.log('b: done');
+}
+function c() {
+    console.log('c: throwing error');
+    throw new Error('c error');
+    console.log('c: done');
+}
+function d() {
+    console.log('d: calling c');
+    c();
+    console.log('d: done');
+}
+try {
+    a();
+} catch(err) {
+    console.log(err.stack);
+}
+try {
+    d();
+} catch(err) {
+    console.log(err.stack);
+}
+
+------ Console Output ------
+a: calling b
+b: calling c
+c: throwing error
+c@debugger eval code:13:1
+b@debugger eval code:8:4
+a@debugger eval code:3:4
+@debugger eval code:23:4
+
+d: calling c
+c: throwing error
+c@debugger eval code:13:1
+d@debugger eval code:18:4
+@debugger eval code:29:4
+```
+
 ## <a name="chapter14"></a>Chapter 14 - [Top](#Top)
+We got a hint of asynchronous programming in Chapter 1 when we responded to user interaction. Recall that user interaction is naturally asynchronous: you can’t control when a user clicks, touches, speaks, or types. But user input isn’t the only reason for asynchronous execution: the very nature of JavaScript makes it necessary for many things.
+> Note: JS is single-threaded
+
+Aside from user input, the three primary things you’ll be using asynchronous techniques for are:
+* Network requests (Ajax calls, for instance)
+* Filesystem operations (reading/writing files, etc.)
+* Intentionally time-delayed functionality (an alarm, for example)
+
+#### Callbacks
