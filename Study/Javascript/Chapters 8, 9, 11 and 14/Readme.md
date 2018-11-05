@@ -831,5 +831,60 @@ Because symbols are unique, this ensures that the mixin will never interfere wit
 > Note: burn this chapter.
 
 ## <a name="chapter11"></a>Chapter 11 - [Top](#Top)
+### Exceptions and Error Handling
+*Exception handling* is a mechanism that came about to deal with errors in a controlled fashion. It’s called exception handling (as opposed to *error handling*) because it’s meant to deal with exceptional circumstances—that is, *not* the errors you anticipate, but the ones you *don’t.*
+
+#### The Error Object
+JavaScript has a built-in Error object, which is convenient for any kind of error handling (exceptional or anticipated). When you create an instance of Error, you can provide an error message:
+```
+const err = new Error('invalid email');
+```
+Creating an Error instance doesn’t, by itself, do anything. What it does is give you something that can be used to communicate errors.
+```
+const email = "JonesATgmail.com";
+
+function checkEmail (email) {
+	if (!email.includes('@')) {
+        throw new Error(`Invalid Email: ${email}`)
+    } else {
+        console.log(email);
+    }    
+}
+
+checkEmail(email);
+
+------ Console Output ------
+Uncaught Error: Invalid Email: JonesATgmail.com
+```
+
+#### Exception Handling with try and catch
+It's a very simple process of being able to catch *any* exception in your code.
+```
+const array=[0,1,2];
+
+try {
+  	array = [3,4,5];
+} catch(err) {
+    console.error(`Error: ${err.message}`);
+}
+
+------ Console Output ------
+Error: Assignment to constant variable.
+```
+
+#### Throwing Errors
+Similarily,
+```
+const array=[0,1,2];
+
+try {
+  	array = [3,4,5];
+} catch(err) {
+    throw new Error(err);
+}
+
+------ Console Output ------
+TypeError: Assignment to constant variable.
+```
 
 ## <a name="chapter14"></a>Chapter 14 - [Top](#Top)
