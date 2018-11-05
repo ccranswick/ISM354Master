@@ -777,6 +777,59 @@ class Car {
 ```
 
 #### Multiple Inheritance, Mixins, and Interfaces
+> Note: TL;DR at bottom.
+Some OO languages support something called multiple inheritance, where one class can have two direct superclasses (as opposed to having a superclass that in turn has a superclass). Multiple inheritance introduces the risk of collisions. That is, if something inherits from two parents, and both parents have a greet method, which does the subclass inherit from? Many languages prefer single inheritance to avoid this thorny problem.
+
+However, when we consider real-world problems, multiple inheritance often makes sense. For example, cars might inherit from both vehicles and “insurable” (you can insure a car or a house, but a house is clearly not a vehicle). Languages that don’t support multiple inheritance often introduce the concept of an interface to get around this problem. A class (Car) can inherit from only one parent (Vehicle), but it can have multiple interfaces (Insurable, Container, etc.).
+
+JavaScript is an interesting hybrid. It is technically a single inheritance language because the prototype chain does not look for multiple parents, but it does provide ways that are sometimes superior to either multiple inheritance or interfaces (and sometimes inferior).
+
+The primary mechanism for the problem of multiple inheritance is the concept of the mixin. A mixin refers to functionality that’s “mixed in” as needed. Because JavaScript is an untyped, extremely permissive language, you can mix in almost any functionality to any object at any time.
+
+Let’s create an “insurable” mixin that we could apply to cars. We’ll keep this simple. In addition to the insurable mixin, we’ll create a class called InsurancePolicy. An insurable mixin needs the methods addInsurancePolicy, getInsurancePolicy, and (for convenience) isInsured. Let’s see how that would work:
+> Note: TL;DR
+> * Multiple direct superclasses => collisions => bad
+> * However MDS ^ makes sense
+>   * A car is both a vehicle and insurable
+> * Some languages support multiple inheritance
+>   * the use of *interfaces* is employed to avoid collisions
+> * JS is a hybrid
+>   * uses mixin
+> * mixin -> refers to functionality as "mixed in"
+> see Example
+```
+..// pulling from the running Car example
+
+class InsurancePolicy() {}
+function makeInsurable(o) {
+    o.addInsurancePolicy = function(p) { this.insurancePolicy = p; }
+    o.getInsurancePolicy = function() { return this.insurancePolicy; }
+    o.isInsured = function() { return !!this.insurancePolicy; }
+}
+
+makeInsurable(Car.prototype);
+const car1 = new Car();
+car1.addInsurancePolicy(new InsurancePolicy()); 
+``` 
+Mixins don’t eliminate the problem of collisions: if the insurance group were to create a method called shift in their mixin for some reason, it would break Car. Also, we can’t use instanceof to identify objects that are insurable: the best we can do is duck typing (if it has a method called addInsurancePolicy, it must be insurable).
+
+We can ameliorate some of these problems with symbols. Let’s say the insurance group is constantly adding very generic methods that are inadvertently trampling Car methods. You could ask them to use symbols for all of their keys. Their mixin would then look like this:
+```
+class InsurancePolicy() {}
+const ADD_POLICY = Symbol();
+const GET_POLICY = Symbol();
+const IS_INSURED = Symbol();
+const _POLICY = Symbol();
+function makeInsurable(o) {
+    o[ADD_POLICY] = function(p) { this[_POLICY] = p; }
+    o[GET_POLICY] = function() { return this[_POLICY]; }
+    o[IS_INSURED] = function() { return !!this[_POLICY]; }
+}
+```
+Because symbols are unique, this ensures that the mixin will never interfere with existing Car functionality. It makes it a little more awkward to use, but it’s much safer. A middle-ground approach might have been to use regular strings for methods, but symbols (such as _POLICY) for data properties.
+
+> Note: burn this chapter.
 
 ## <a name="chapter11"></a>Chapter 11 - [Top](#Top)
+
 ## <a name="chapter14"></a>Chapter 14 - [Top](#Top)
