@@ -16,7 +16,7 @@
     * [2 x 10 points]
     * ex. More difficult programming questions requiring
     * functions, objects, arrays, etc.
-* Chapters 8, 9, 11 and 14
+* <a href="https://github.com/Danebrouwer97/ISM354Master/tree/master/Study/Javascript/Chapters%208%2C%209%2C%2011%20and%2014">Chapters 8, 9, 11 and 14</a>
     * Two Short Answer Theory Questions
     * [2 x 5 points]
     * ex. Theory from four chapters.
