@@ -373,6 +373,7 @@ One behavior of the Array methods that often trips people up is the way they tre
 const arr = Array(10).map(function(x) { return 5 });
 ```
 > Note: this will fail.
+
 arr would still be an array with 10 elements, all undefined. Similarly, if you delete an element from the middle of an array, and then call map, you’ll get an array with a “hole” in it:
 ```
 const arr = [1, 2, 3, 4, 5];
@@ -640,7 +641,8 @@ any specific instance.
 ```
 class Car {
     static getNextVin() {
-        return Car.nextVin++; // we could also use this.nextVin++ but referring to Car emphasizes that this is a static method
+        return Car.nextVin++; // we could also use this.nextVin++ but referring to 
+        // Car emphasizes that this is a static method
     }
 
     constructor(make, model) {
@@ -778,6 +780,7 @@ class Car {
 
 #### Multiple Inheritance, Mixins, and Interfaces
 > Note: TL;DR at bottom.
+
 Some OO languages support something called multiple inheritance, where one class can have two direct superclasses (as opposed to having a superclass that in turn has a superclass). Multiple inheritance introduces the risk of collisions. That is, if something inherits from two parents, and both parents have a greet method, which does the subclass inherit from? Many languages prefer single inheritance to avoid this thorny problem.
 
 However, when we consider real-world problems, multiple inheritance often makes sense. For example, cars might inherit from both vehicles and “insurable” (you can insure a car or a house, but a house is clearly not a vehicle). Languages that don’t support multiple inheritance often introduce the concept of an interface to get around this problem. A class (Car) can inherit from only one parent (Vehicle), but it can have multiple interfaces (Insurable, Container, etc.).
@@ -953,8 +956,227 @@ We got a hint of asynchronous programming in Chapter 1 when we responded to user
 > Note: JS is single-threaded
 
 Aside from user input, the three primary things you’ll be using asynchronous techniques for are:
-* Network requests (Ajax calls, for instance)
+* Network requests (Ajax calls/jquery/react, for instance)
 * Filesystem operations (reading/writing files, etc.)
 * Intentionally time-delayed functionality (an alarm, for example)
 
 #### Callbacks
+Callbacks are the oldest asynchronous mechanism in JavaScript, and we’ve already seen them used to handle user input and timeouts. A callback is simply a function that you write that will be invoked at some point in the future. Callbacks are very often (but not always) anonymous functions.
+
+One can use *setTimeout*, a built-in function that delays execution.
+```
+console.log("Before timeout: " + new Date());
+function f() {
+    console.log("After timeout: " + new Date());
+}
+setTimeout(f, 60*1000); // one minute
+console.log("I happen after setTimeout!");
+console.log("Me too!");
+
+------ Console Output ------
+Before timeout: Sun Aug 02 2015 17:11:32 GMT-0700 (Pacific Daylight Time)
+I happen after setTimeout!
+Me too!
+After timeout: Sun Aug 02 2015 17:12:32 GMT-0700 (Pacific Daylight Time)
+```
+> Note: the linear nature of the code *we write* is different to the actual *execution* of that code.
+
+This outlines the asynchronous nature of JS.
+
+#### setInterval and clearInterval
+In addition to *setTimeout*, which runs its function once and stops, there’s *setInterval*, which runs the callback at the specified interval forever, or until you call *clearInterval.* Here’s an example that runs every 5 seconds until the minute rolls over, or 3 times, whichever comes first:
+```
+const start = new Date();
+let i=0;
+const intervalId = setInterval(function() {
+    let now = new Date();
+        if(now.getMinutes() !== start.getMinutes() || ++i>10)
+        return clearInterval(intervalId);
+    console.log(`${i}: ${now}`);
+}, 5*1000);
+
+------ Console Output ------
+1: Tue Nov 06 2018 15:53:19 GMT+0200 (South Africa Standard Time)
+2: Tue Nov 06 2018 15:53:24 GMT+0200 (South Africa Standard Time)
+3: Tue Nov 06 2018 15:53:29 GMT+0200 (South Africa Standard Time)
+```
+
+#### Scope and Asynchronous Execution
+A common source of confusion—and errors—with asynchronous execution is how scope and closures affect asynchronous execution. Every time you invoke a function, you create a closure: all of the variables that are created inside the function (including the arguments) exist as long as something can access them.
+```
+function countdown() {
+    let i; // note we declare let outside of the for loop
+    console.log("Countdown:");
+    for(i=5; i>=0; i--) {
+        setTimeout(function() {
+            console.log(i===0 ? "GO!" : i);
+        }, (5-i)*1000);
+    }
+}
+countdown();
+
+------ Console Output ------
+Countdown:
+-1
+-1
+-1
+-1
+-1
+-1
+```
+The first time we saw this issue, we were using var; this time we’re using let, but it’s declared outside of the for loop, so we have the same problem: the for loop executes completely, leaving i with the value –1, and only then do the callbacks start executing. The problem is, when they execute, i already has the value –1.
+```
+function countdown() {
+    console.log("Countdown:");
+    for(let i=5; i>=0; i--) { // i is now block-scoped
+        setTimeout(function() {
+            console.log(i===0 ? "GO!" : i);
+        }, (5-i)*1000);
+    }
+}
+countdown();
+
+------ Console Output ------
+Countdown:
+5
+4
+3
+2
+1
+GO!
+```
+> Note: one has to be mindful of the scope the callbacks are declared in: they will have access to everything in that scope (closure). And because of that, the value may be different when the callback actually executes.
+
+This principle applies to all asynchronous techniques, not just callbacks.
+
+#### Error-First Callbacks
+At some point during the ascendancy of Node, a convention called *error-first* callbacks established itself. Because callbacks make exception handling difficult (which we’ll see soon), there needed to be a standard way to communicate a failure to the callback. The convention that emerged was to use the first argument to a callback to receive an error object. If that error is null or undefined, there was no error.
+```
+const fs = require('fs');
+const fname = 'may_or_may_not_exist.txt';
+fs.readFile(fname, function(err, data) {
+    if(err) return console.error(`error reading file ${fname}: ${err.message}`);
+    console.log(`${fname} contents: ${data}`);
+});
+
+------ Console Output ------
+error reading file may_or_may_not_exist.txt: .../
+```
+> Note: *error-first callbacks* are the de facto standard in Node development (when promises aren’t being used), and if you’re writing an interface that takes a callback.
+
+#### Callback Hell
+While callbacks allow you to manage asynchronous execution, they have a practical drawback: they’re difficult to manage when you need to wait on multiple things before proceeding. Imagine the scenario where you’re writing a Node app that needs to get the contents of three different files, then wait 60 seconds before combining the contents of those files and writing to a fourth file:
+```
+const fs = require('fs');
+fs.readFile('a.txt', function(err, dataA) {
+    if(err) console.error(err);
+    fs.readFile('b.txt', function(err, dataB) {
+        if(err) console.error(err);
+        fs.readFile('c.txt', function(err, dataC) {
+            if(err) console.error(err);
+            setTimeout(function() {
+                fs.writeFile('d.txt', dataA+dataB+dataC, function(err) {
+                    if(err) console.error(err);
+                });
+            }, 60*1000);
+        });
+    });
+});
+```
+> Note: this is what programmers refer to as “callback hell,” and it’s typified by a triangle-shaped block of code with curly braces nested to the sky. 
+
+Consider the following simpler example: 
+```
+const fs = require('fs');
+function readSketchyFile() {
+    try {
+        fs.readFile('does_not_exist.txt', function(err, data) {
+            if(err) throw err;
+        });
+    } catch(err) {
+        console.log('warning: minor issue occurred, program continuing');
+    }
+}
+readSketchyFile();
+```
+Glancing over this, it seems reasonable enough, and hooray for us for being defensive programmers and using exception handling. Except it won’t work. That’s because try...catch blocks only work within the same function. The try...catch block is in readSketchyFile, but the error is thrown inside the anonymous function that fs.readFile invokes as a callback.
+
+### Promises
+Promises attempt to address some of the shortcomings of callbacks. Using promises - while sometimes a hassle - generally results in safer, easier-to-maintain code.
+> Note: promises don’t eliminate callbacks; you still have to use callbacks
+
+The basic idea of a **promise** is simple: when you call a promise-based asynchronous function, it returns a Promise instance. Only two things can happen to that promise: it can be *fulfilled (success)* or *rejected (failure).* You are **guaranteed** that only one of those things will happen (it won’t be fulfilled and then later rejected), and the result will happen only once (if it’s fulfilled, it’ll only be fulfilled once; if it’s rejected, it’ll only be rejected once). Once a promise has either been fulfilled or rejected, it’s considered to be settled.
+
+#### Creating Promises
+Creating a promise is a straightforward affair: you create a new Promise instance with a function that has *resolve (fulfill)* and *reject callbacks.*
+```
+function countdown(seconds) {
+    return new Promise(function(resolve, reject) {
+        for(let i=seconds; i>=0; i--) {
+            setTimeout(function() {
+                if(i>0) console.log(i + '...');
+                else resolve(console.log("GO!"));
+            }, (seconds-i)*1000);
+        }
+    });
+   }
+```
+> Note: resolve (like reject) is a function. You might be thinking “Ah ha! I could call resolve multiple times, and break the er…promise of promises.” You could indeed
+
+#### Using Promises
+Let’s see how we can use our countdown function. We could just call it and ignore the promise altogether: countdown(3). We’ll still get our countdown, and we didn’t have to fuss with the promise at all. But what if we want to take advantage of the promise? Here’s how we use the promise that’s returned:
+```
+countdown(3).then(
+ function() {
+ console.log("countdown completed successfully");
+ },
+ function(err) {
+ console.log("countdown experienced an error: " + err.message);
+ }
+
+------ Console Output ------
+3...
+2...
+1...
+GO!
+countdown completed successfully
+```
+> Note: see the use of the '*then*' handler.
+
+In this example, we didn’t bother assigning the returned promise to a variable; we just called its *then* handler directly. That handler takes two callbacks: the first one is the *fulfilled callback*, and the second is the *error callback.*
+* eg. *countdown(3).then({ //fufilled },{ //error })*
+
+Promises also support a *catch handler* so you can split up the two handlers (we’ll also store the promise in a variable to demonstrate that):
+```
+const p = countdown(5);
+p.then(function() {
+    console.log("countdown completed successfully");
+});
+p.catch(function(err) {
+    console.log("countdown experienced an error: " + err.message);
+});
+```
+Let’s modify our countdown function to have an error condition. Imagine we’re superstitious, and we’ll have an error if we have to count the number 13.
+```
+function countdown(seconds) {
+    return new Promise(function(resolve, reject) {
+        for(let i=seconds; i>=0; i--) {
+            setTimeout(function() {
+                if(i===13) return reject(new Error("DEFINITELY NOT COUNTING THAT"));
+                if(i>0) console.log(i + '...');
+                else resolve(console.log("GO!"));
+            }, (seconds-i)*1000);
+        }
+    });
+}
+
+------ Console Output ------
+15...
+14...
+countdown experienced an error: DEFINITELY NOT COUNTING THAT
+12...
+11...
+```
+> Note: calling *reject* (or *resolve*) doesn’t stop your function; it just manages the state of the promise.
+
+#### Events
