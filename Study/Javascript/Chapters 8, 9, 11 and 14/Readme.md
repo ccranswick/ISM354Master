@@ -1180,3 +1180,155 @@ countdown experienced an error: DEFINITELY NOT COUNTING THAT
 > Note: calling *reject* (or *resolve*) doesn’t stop your function; it just manages the state of the promise.
 
 #### Events
+Events are another old idea that’s gained traction in JavaScript. The concept of events is simple: 
+* *event emitter*s broadcast events
+* *even listener*s, well, listen
+
+But how does an *event listener* subscribe to the broadcast? **Callbacks!**
+To improve countdown, we’ll use Node’s EventEmitter. While it’s possible to use EventEmitter with a function like countdown, it’s designed to be used with a class. So we’ll make our countdown function into a Countdown class instead:
+```
+const EventEmitter = require('events').EventEmitter;
+
+class Countdown extends EventEmitter {
+    constructor(seconds, superstitious) {
+        super();
+        this.seconds = seconds;
+        this.superstitious = !!superstitious;
+    }
+
+    go() {
+        const countdown = this;
+        return new Promise(function(resolve, reject) {
+            for(let i=countdown.seconds; i>=0; i--) {
+                setTimeout(function() {
+                    if(countdown.superstitious && i===13)
+                        return reject(new Error("DEFINITELY NOT COUNTING THAT"));
+                    countdown.emit('tick', i);
+                    if(i===0) resolve();
+                }, (countdown.seconds-i)*1000);
+            }
+        });
+    }
+}
+```
+The Countdown class extends EventEmitter, which enables it to emit events. The go method is what actually starts the countdown and returns a promise. Note that inside the go method, the first thing we do is assign this to countdown. That’s because we need to use the value of this to get the length of the countdown, and whether or not the countdown is superstitious inside the callbacks. Remember that this is a special variable, and it won’t have the same value inside a callback. So we have to save the current value of this so we can use it inside the promises.
+
+
+The magic happens when we call countdown.emit('tick', i). Anyone who wants to listen for the tick event (we could have called it anything we wanted; “tick” seemed as good as anything) can do so. Let’s see how we would use this new, improved countdown:
+```
+const c = new Countdown(15, true); // boolean => superstitious
+c.on('tick', function(i) {
+    if(i>0) console.log(i + '...');
+});
+
+c.go().then(function() {
+    console.log('GO!');
+}).catch(function(err) {
+    console.error(err.message);
+})
+
+------ Console Output ------
+15...
+14...
+DEFINITELY NOT COUNTING THAT
+12...
+    ../..
+1..
+GO!
+```
+> Note: the output still gets to 'GO!' and we don't want that because we don't want to count past 13.
+
+The solution is simple:
+```
+go() {
+        const countdown = this;
+        const timeoutIds = []; //NEW
+        return new Promise(function(resolve, reject) {
+            for(let i=countdown.seconds; i>=0; i--) {
+                timeoutIds.push(setTimeout(function() { //NEW
+                    if(countdown.superstitious && i===13) {
+                        // clear all pending timeouts
+                        timeoutIds.forEach(clearTimeout); //NEW
+                        return reject(new Error("DEFINITELY NOT COUNTING THAT"));
+                    }
+                    countdown.emit('tick', i);
+                    if(i===0) resolve();
+                }, (countdown.seconds-i)*1000));
+            }
+        });
+
+    ../..
+
+------ Console Output ------
+15...
+14...
+DEFINITELY NOT COUNTING THAT
+```
+
+#### Promise Chaining
+One of the advantages of promises is that they can be chained; that is, when one promise is fulfilled, you can have it immediately invoke another function that returns a promise…and so on. Let’s create a function called *launch* that we can *chain* to a *countdown:*
+```
+// using the previous countdown example
+function launch() {
+    return new Promise(function(resolve, reject) {
+        console.log("Lift off!");
+        setTimeout(function() {
+            resolve("In orbit!");
+        }, 2*1000); // a very fast rocket indeed
+    });
+}
+
+const c = new Countdown(5)
+    .on('tick', i => console.log(i + '...'));
+
+c.go().then(launch).then(function(msg) {
+    console.log(msg);
+ }).catch(function(err) {
+    console.error("Houston, we have a problem....");
+ })
+```
+> advantages of promise chains is that you don’t have to catch errors at every step; if there’s an error anywhere in the chain, the chain will stop and fall through to the catch handler.
+
+#### Preventing Unsettled 
+Promises can simplify your asynchronous code and protect you against the problem of callbacks being called more than once, but they don’t protect you from the problem of promises that never settle (that is, you forget to call either resolve or reject). This kind of mistake can be hard to track down because there’s no error…in a complex system, an unsettled promise may simply get lost.
+
+
+One way to prevent that is to specify a timeout for promises; if the promise hasn’t settled in some reasonable amount of time, automatically reject it. Obviously, it’s up to you to know what “reasonable amount of time” is. If you have a complex algorithm that you expect to take 10 minutes to execute, don’t set a 1-second timeout.
+```
+function addTimeout(fn, timeout) {
+    if(timeout === undefined) timeout = 1000; // default timeout
+    return function(...args) {
+        return new Promise(function(resolve, reject) {
+            const tid = setTimeout(reject, timeout,
+                new Error("promise timed out"));
+            fn(...args)
+            .then(function(...args) {
+                clearTimeout(tid);
+                resolve(...args);
+            })
+            .catch(function(...args) {
+                clearTimeout(tid);
+                reject(...args);
+            });
+        });
+    }
+}
+```
+> Note: Housten, we have a problem... that's complicated AF. 
+
+
+I do not blame you!
+Adding a timeout to a promise-returning function is not trivial, and requires all of the preceding contortions. Completely understanding this function is left as an advanced reader’s exercise. *However, using this is quite easy!*
+> Note: Wow... thanks, Housten.
+```
+c.go()
+    .then(addTimeout(launch, 4*1000))
+    .then(function(msg) {
+        console.log(msg);
+    }) .catch(function(err) {
+        console.error("Houston, we have a problem: " + err.message);
+    });
+```
+
+#### Generators
+*Generators* allow two-way communication between a function and its caller. Generators are synchronous in nature, but when combined with promises, they offer a powerful technique for managing async code in JS.
