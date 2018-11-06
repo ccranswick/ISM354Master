@@ -1399,6 +1399,7 @@ grun(theFutureIsNow);
 
 #### One Step Forward and Two Steps Back?
 > TL;DR - Sorry.
+
 The problem (assuming there is a problem) is easy to solve. Promise provides a method called all, which resolves when all the promises in an array resolve…and will execute the asynchronous code in parallel if possible. All we have to do is modify our function to use Promise.all:
 ```
 function* theFutureIsNow() {
