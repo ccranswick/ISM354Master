@@ -1332,3 +1332,128 @@ c.go()
 
 #### Generators
 *Generators* allow two-way communication between a function and its caller. Generators are synchronous in nature, but when combined with promises, they offer a powerful technique for managing async code in JS.
+
+Consider the “callback hell” example we used previously: reading three files, delaying for one minute, then writing the contents of the first three files out to a fourth file. How our human minds would like to write this is something like this pseudocode:
+```
+dataA = read contents of 'a.txt'
+dataB = read contents of 'b.txt'
+dataC = read contents of 'c.txt'
+wait 60 seconds
+write dataA + dataB + dataC to 'd.txt'
+```
+Generators enable us to write code that looks very much like this…but the functionality doesn’t come out of the box: we’ll have to do a little work first.
+1. The first thing we need is a way to turn Node’s error-first callbacks into promises. We’ll encapsulate that into a function called nfcall (Node function call):
+```
+function nfcall(f, ...args) {
+    return new Promise(function(resolve, reject) {
+        f.call(null, ...args, function(err, ...args) {
+            if(err) return reject(err);
+                resolve(args.length<2 ? args[0] : args);
+        });
+    });
+}
+```
+2. Now we can convert any Node-style method that takes a callback to a promise. We’ll also need setTimeout, which takes a callback…but because it predates Node, it wasn’t hip to the error-first convention. So we’ll create ptimeout (promise timeout):
+```
+function ptimeout(delay) {
+    return new Promise(function(resolve, reject) {
+        setTimeout(resolve, delay);
+    });
+}
+```
+3. The next thing we’ll need is a generator runner. Recall that generators are not inherently asynchronous. But because generators allow the function to communicate to the caller, we can create a function that will manage that communication—and know how to handle asynchronous calls. We’ll create a function called grun (generator run):
+```
+function grun(g) {
+    const it = g();
+    (function iterate(val) {
+        const x = it.next(val);
+        if(!x.done) {
+            if(x.value instanceof Promise) {
+                x.value.then(iterate).catch(err => it.throw(err));
+            } else {
+                setTimeout(iterate, 0, x.value);
+            }
+        }
+    })();
+}
+```
+After all that, this is a very modest recursive generator runner. You pass it a generator function, and it runs it. 
+> If the iterator returns a promise, it waits for the promise to be fulfilled before resuming the iterator. On the other hand, if the iterator returns a simple value, it immediately resumes the iteration.
+
+You may be wondering why we call setTimeout instead of just calling iterate directly; the reason is that we gain a little efficiency by avoiding synchronous recursion (asynchronous recursion allows the JavaScript engine to free resourcesmore quickly).
+
+You may be thinking “This is a lot of fuss!” and “This is supposed to simplify my life?”, but the hard part is over. nfcall allows us to adopt the past (Node error-first callback functions) to the present (promises), and grun allows us access to the future today (expected in ES7 is the await keyword, which will essentially function as grun, with an even more natural syntax). So now that we’ve got the hard part out of the way, let’s see how all of this makes our life easier.
+```
+function* theFutureIsNow() {
+    const dataA = yield nfcall(fs.readFile, 'a.txt');
+    const dataB = yield nfcall(fs.readFile, 'b.txt');
+    const dataC = yield nfcall(fs.readFile, 'c.txt');
+    yield ptimeout(60*1000);
+    yield nfcall(fs.writeFile, 'd.txt', dataA+dataB+dataC);
+}
+```
+It looks a lot better than callback hell, doesn’t it? It’s also neater than promises alone. It flows the way we think. Running it is simple:
+```
+grun(theFutureIsNow);
+```
+
+#### One Step Forward and Two Steps Back?
+> TL;DR - Sorry.
+The problem (assuming there is a problem) is easy to solve. Promise provides a method called all, which resolves when all the promises in an array resolve…and will execute the asynchronous code in parallel if possible. All we have to do is modify our function to use Promise.all:
+```
+function* theFutureIsNow() {
+    const data = yield Promise.all([
+        nfcall(fs.readFile, 'a.txt'),
+        nfcall(fs.readFile, 'b.txt'),
+        nfcall(fs.readFile, 'c.txt'),
+    ]);
+    yield ptimeout(60*1000);
+    yield nfcall(fs.writeFile, 'd.txt', data[0]+data[1]+data[2]);
+}
+```
+The promise returned by Promise.all provides an array containing the fulfillment value of each promise in the order they appear in the array. Even though it’s possible for c.txt to be read before a.txt, data[0] will still hold the contents of a.txt, and data[1] will still hold the contents of c.txt.
+
+#### Don’t Write Your Own Generator Runner
+Just don't. To quote the textbook,
+> "It’s better not to reinvent the wheel."
+
+#### Exception Handling in Generator Runners
+Another important benefit of generator runners is that they enable exception handling with try/catch. Remember that exception handling is problematic with callbacks and promises; throwing an exception inside a callback cannot be caught from outside the callback. Generator runners, because they enable synchronous semantics while still preserving asynchronous execution, have a side benefit of working with try/catch.
+```
+function* theFutureIsNow() {
+    let data;
+    try {
+        data = yield Promise.all([
+            nfcall(fs.readFile, 'a.txt'),
+            nfcall(fs.readFile, 'b.txt'),
+            nfcall(fs.readFile, 'c.txt'),
+        ]);
+    } catch(err) {
+        console.error("Unable to read one or more input files: " + err.message);
+        throw err;
+    }
+    yield ptimeout(60*1000);
+    try {
+        yield nfcall(fs.writeFile, 'd.txt', data[0]+data[1]+data[2]);
+    } catch(err) {
+        console.error("Unable to write output file: " + err.message);
+        throw err;
+    }
+}
+```
+I’m not claiming that try...catch exception handling is inherently superior to catch handlers on promises, or error-first callbacks, but it is a well-understood mechanism for exception handling, and if you prefer synchronous semantics, then you will want to be able to use it for exception handling.
+
+#### Chapter 14 Conclusion
+> Finally.
+
+* Asynchronous execution in JavaScript is managed with callbacks.
+* Promises do not replace callbacks; indeed, promises require then and catch callbacks.
+* Promises eliminate the problem of a callback getting called multiple times.
+* If you need a callback to be called multiple times, consider using events (which can be combined with a promise).
+* A promise cannot guarantee that it will settle; however, you can wrap it in a timeout to protect against this.
+* Promises can be chained, enabling easy composition.
+* Promises can be combined with generator runners to enable synchronous semantics without losing the advantages of asynchronous execution.
+* When writing generator functions with synchronous semantics, you should be careful to understand what parts of your algorithm can run in parallel, and use Promise.all to run those parts.
+* You shouldn’t write your own generator runner; use co or Koa.
+* You shouldn’t write your own code to convert Node-style callbacks to promises; use Q.
+* Exception handling works with synchronous semantics, as enabled by generator runners.
